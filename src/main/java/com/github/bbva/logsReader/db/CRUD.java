@@ -338,36 +338,40 @@ public class CRUD implements DBConnection {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.github.bbva.logsReader.db.DBConnection#commit()
-	 */
-	@Override
-	public void commit() {
-		if (!dbAutoCommit)
-			try {
-				getLocalConnection().commit();
-
-			} catch (SQLException e) {
-				throw new LogsReaderException(e, "Error making commit.");
-			}
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.github.bbva.logsReader.db.DBConnection#rollbak()
-	 */
-	@Override
-	public void rollbak() {
-		try {
-			getLocalConnection().rollback();
-		} catch (SQLException e) {
-			throw new LogsReaderException(e, "Error making rollback.");
-		}
-	}
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see com.github.bbva.logsReader.db.DBConnection#commit()
+//	 */
+//	@Override
+//	public void commit() {
+//		if (!dbAutoCommit)
+//			try {
+//				Connection cnx= getLocalConnection();
+//				if(cnx != null && cnx.getTransactionIsolation() == cnx.TRANSACTION_READ_UNCOMMITTED)
+//					cnx.commit();
+//
+//			} catch (SQLException e) {
+//				throw new LogsReaderException(e, "Error making commit.");
+//			}
+//
+//	}
+//
+//	/*
+//	 * (non-Javadoc)
+//	 * 
+//	 * @see com.github.bbva.logsReader.db.DBConnection#rollbak()
+//	 */
+//	@Override
+//	public void rollbak() {
+//		try {
+//			Connection cnx= getLocalConnection();
+//			if(cnx != null && cnx.getTransactionIsolation() == cnx.TRANSACTION_READ_UNCOMMITTED)
+//				cnx.commit();
+//		} catch (SQLException e) {
+//			throw new LogsReaderException(e, "Error making rollback.");
+//		}
+//	}
 
 	@Override
 	public <T> List<T> read(Class<T> clazz, String sql, LoadData<T> loader,

@@ -1,103 +1,121 @@
-<!doctype html>
-<html>
-<head>
-<title>Demonstration for Table Bar Chart</title>
-<script type="text/javascript" src="jquery-1.11.0.min.js"></script>
-<script type="text/javascript" src="TableBarChart.js"></script>
-<link rel="stylesheet" href="TableBarChart.css" />
-<style type="text/css">
-table {
-	border-collapse: collapse;
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+	font: 10px sans-serif;
 }
 
-caption {
-	background: #D3D3D3;
+.axis path,.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
 }
 
-th {
-	background: #A7C942;
-	border: 1px solid #98BF21;
-	color: #ffffff;
-	font-weight: bold;
-	text-align: left;
+.x.axis path {
+	display: none;
 }
 
-td {
-	border: 1px solid #98BF21;
-	text-align: left;
-	font-weight: normal;
-	color: #000000;
-}
-
-tr:nth-child(odd) {
-	background: #ffffff;
-}
-
-tbody tr:nth-child(odd) th {
-	background: #ffffff;
-	color: #000000;
-}
-
-tr:nth-child(even) {
-	background: #EAF2D3;
-}
-
-tbody tr:nth-child(even) th {
-	background: #EAF2D3;
-	color: #000000;
-}
-
-#target {
-	width: 600px;
-	height: 400px;
+.line {
+	fill: none;
+	stroke: steelblue;
+	stroke-width: 1.5px;
 }
 </style>
-</head>
+
+<script type="text/javascript">
+	function callService() {
+
+		var url = "/StandardDeviation";
+
+		function handler() {
+
+			if (client.status == 200){
+				alert("The request succeeded!\n\nThe response representation was:\n\n"
+						+ client.responseText);
+				 print(client.responseText);
+			}
+			else
+				alert(" ERROR : " + client.status + " " + client.statusText
+						+ ".");
+		}
+
+		var client = new XMLHttpRequest();
+		client.onreadystatechange = handler;
+		client.open("GET", url);
+		client.send();
+
+	}
+	
+	function print(info ){
+		alert("Start info");
+		var margin = {
+				top : 20,
+				right : 20,
+				bottom : 30,
+				left : 50
+			}, width = 960 - margin.left - margin.right, height = 500 - margin.top
+					- margin.bottom;
+
+			var parseDate = d3.time.format("%d/%b/%y").parse;
+
+			var x = d3.time.scale().range([ 0, width ]);
+
+			var y = d3.scale.linear().range([ height, 0 ]);
+
+			var xAxis = d3.svg.axis().scale(x).orient("bottom");
+
+			var yAxis = d3.svg.axis().scale(y).orient("left");
+
+			var line = d3.svg.line().x(function(d) {
+				return x(d.date);
+			}).y(function(d) {
+				return y(d.close);
+			});
+
+			var svg = d3.select("body").append("svg").attr("width",
+					width + margin.left + margin.right).attr("height",
+					height + margin.top + margin.bottom).append("g").attr(
+					"transform",
+					"translate(" + margin.left + "," + margin.top + ")");
+
+			d3.tsv.parse(info, function( info) {
+				data.forEach(function(d) {
+					d.date = parseDate(d.date);
+					d.close = +d.close;
+				});
+
+				x.domain(d3.extent(data, function(d) {
+					return d.date;
+				}));
+				y.domain(d3.extent(data, function(d) {
+					return d.close;
+				}));
+
+				svg.append("g").attr("class", "x axis").attr("transform",
+						"translate(0," + height + ")").call(xAxis);
+
+				svg.append("g").attr("class", "y axis").call(yAxis).append("text")
+						.attr("transform", "rotate(-90)").attr("y", 6).attr("dy",
+								".71em").style("text-anchor", "end").text(
+								"Price ($)");
+
+				svg.append("path").datum(data).attr("class", "line")
+						.attr("d", line);
+			});
+			alert("END info");
+	}
+	
+</script>
 <body>
-	<table id="source">
-		<caption>Locating Element By Id</caption>
-		<thead>
-			<tr>
-				<th></th>
-				<th>Run 1</th>
-				<th>Run 2</th>
-				<th>Run 3</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<th>Chrome</th>
-				<td>1595</td>
-				<td>1578</td>
-				<td>1584</td>
-			</tr>
-			<tr>
-				<th>Firefox</th>
-				<td>1470</td>
-				<td>1430</td>
-				<td>1500</td>
-			</tr>
-			<tr>
-				<th>Internet Explorer</th>
-				<td>2750</td>
-				<td>3140</td>
-				<td>3162</td>
-			</tr>
-			<tr>
-				<th>HTMLUnit with JS</th>
-				<td>170</td>
-				<td>100</td>
-				<td>90</td>
-			</tr>
-		</tbody>
-	</table>
-	<div id="target"></div>
+	<div class="navbar">
+		<div class="navbar-inner">
+			<a class="brand" href="#">ToDo API Client Demo</a>
+		</div>
+	</div>
 
-	<script type="text/javascript">
-		$(function() {
-			$('#source').tableBarChart('#target', '', false);
-		});
+	<input type="button" value="Text" onclick="callService()">
+
+	<script src="http://d3js.org/d3.v3.js"></script>
+	<script>
+
 	</script>
-
-</body>
-</html>

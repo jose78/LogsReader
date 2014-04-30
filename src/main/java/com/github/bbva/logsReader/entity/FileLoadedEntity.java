@@ -41,12 +41,14 @@ public class FileLoadedEntity {
 		return name;
 	}
 
-	public void setId(int id) {
+	public FileLoadedEntity setId(int id) {
 		this.id = id;
+		return this;
 	}
 
-	public void setName(String name) {
+	public FileLoadedEntity setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 }

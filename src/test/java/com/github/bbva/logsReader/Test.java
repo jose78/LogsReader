@@ -51,7 +51,7 @@ public class Test {
 	public void testConnectionDBRead() throws Exception {
 		connection.delete(new FileLoadedEntity("perrea.txt"));
 		connection.insert(new FileLoadedEntity("perrea.txt"));
-		connection.commit();
+
 		log.info(connection.read(String.class,
 				"SELECT NAME FROM CONTAINER_LOGS_DATA.FILES_LOADED"));
 
@@ -65,9 +65,10 @@ public class Test {
 	@org.junit.Test
 	public void tesStandardDeviation() throws Exception {
 		
-		String inicioFechaIntervalo = "01/01/2013";
-		String finFechaIntervalo = "22/4/2014";
-		log.info(new Gson().toJson(repository.getStandardDeviation(AgrupadorEnum.YEAR , MediaEnum.DOY, inicioFechaIntervalo, finFechaIntervalo)));
+		String inicioFechaIntervalo = null; //"01/01/2013";
+		String finFechaIntervalo= null; // "22/4/2014";
+		log.info(new Gson().toJson(repository.getStandardDeviation(
+				inicioFechaIntervalo, finFechaIntervalo)));
 	}
 
 }

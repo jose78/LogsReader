@@ -154,8 +154,9 @@ public class LogDTO {
 	public String getFileName() {
 		return fileName;
 	}
-	public void setFileName(String fileName) {
+	public LogDTO setFileName(String fileName) {
 		this.fileName = fileName;
+		return this;
 	}
 	
 	@Override
@@ -166,8 +167,4 @@ public class LogDTO {
 						label, responseCode, responseMessage, success,
 						threadName, timeStamp);
 	}
-	
-	
-	
-
 }

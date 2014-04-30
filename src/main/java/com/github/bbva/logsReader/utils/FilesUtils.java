@@ -14,7 +14,6 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.entity.FileLoadedEntity;
@@ -60,32 +59,37 @@ public class FilesUtils {
 
 	private void loadFiles(String... pathnames) {
 
+		
+		String fileName =null;
+		
+		
 		/*
 		 * 0º read all files of each directory and validate us that then can be
 		 * loaded.
 		 */
-
 		for (String pathname : pathnames) {
-			try {
-				log.info(String.format("Scaning the directory %s", pathname));
-				File directory = new File(pathname);
-				File files[] = directory.listFiles();
-				for (File file : files) {
+
+			log.info(String.format("Scaning the directory %s", pathname));
+			File directory = new File(pathname);
+			File files[] = directory.listFiles();
+			for (File file : files) {
+				try {
 					if (file.isFile()
 							&& !containerNameFilesLoaded.contains(file
 									.getAbsolutePath())) {
-						String fileName = file.getName();
+						fileName = file.getName();
 
 						/*
 						 * 1º save all new files loaded.
 						 */
-						connection.insert(new FileLoadedEntity(file.getAbsolutePath()));
+						connection.insert(new FileLoadedEntity(file
+								.getAbsolutePath()));
 
 						/*
 						 * 2º retrieve and save in db all logDto.
 						 */
 						List<LogDTO> list = openFile(file);
-						if(list == null)
+						if (list == null)
 							continue;
 
 						List<LogDTO> lstError = new ArrayList<LogDTO>();
@@ -96,14 +100,8 @@ public class FilesUtils {
 								lstError.add(logDTO);
 							}
 						}
-
 						/*
-						 * 3º commit the transaction.
-                         */
-						connection.commit();
-
-						/*
-						 * 4º save the file in the container of files readed
+						 * 3º save the file in the container of files readed
 						 */
 						containerNameFilesLoaded.add(fileName);
 
@@ -112,13 +110,17 @@ public class FilesUtils {
 										file.getName(), list.size(),
 										lstError.size()));
 					}
+
+				} catch (Exception e) {
+					
+					containerNameFilesLoaded.remove(fileName);
+					connection.delete(new FileLoadedEntity(file.getAbsolutePath()));
+					connection.delete(new LogDTO().setFileName(file.getAbsolutePath()));
+					log.error(" Clean Error from DB -> OK.", e);
+					e.printStackTrace();
 				}
-				connection.commit();
-			} catch (Exception e) {
-				connection.rollbak();
-				log.error(" rollback OK.", e);
-				e.printStackTrace();
 			}
+
 		}
 	}
 
@@ -152,12 +154,6 @@ public class FilesUtils {
 			br.close();
 
 		}
-	}
-
-	@ExceptionHandler(LogsReaderException.class)
-	public void handleAllException(LogsReaderException ex) {
-		connection.rollbak();
-		log.error(" rollback OK.", ex);
 	}
 
 	/**
