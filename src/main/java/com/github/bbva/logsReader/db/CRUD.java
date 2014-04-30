@@ -4,7 +4,6 @@
 package com.github.bbva.logsReader.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -19,6 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import com.github.bbva.logsReader.annt.Column;
 import com.github.bbva.logsReader.annt.Id;
@@ -32,6 +32,7 @@ import com.github.bbva.logsReader.utils.LogsReaderException;
  *         Neoris</a>
  * 
  */
+
 public class CRUD implements DBConnection {
 
 	private static Logger log = Logger.getLogger(CRUD.class);
@@ -50,44 +51,44 @@ public class CRUD implements DBConnection {
 	@Autowired
 	private ClassUtils classUtils;
 
-	private Connection connection = null;
+	@Autowired
+	private DriverManagerDataSource ds;
 
-	@SuppressWarnings("unused")
-	private void init() {
+	
+
+	public  void init() {
 		log.info("-------- PostgreSQL JDBC Connection Testing ------------");
-
-		try {
-			Class.forName(dbDriver);
-			log.info("PostgreSQL JDBC Driver Registered!");
-		} catch (ClassNotFoundException e) {
-			log.error("Where is your PostgreSQL JDBC Driver? "
-					+ "Include in your library path!", e);
-			e.printStackTrace();
-			return;
-
-		}
+		ds.setDriverClassName(dbDriver);
+		ds.setPassword(dbPass);
+		ds.setUrl(dbUrl);
+		ds.setUsername(dbUser);
 	}
 
-	private Connection getConnection() {
-		if(connection == null)
-			connection = createConnection();
-		
-		return connection;
-	}
-
-	private Connection createConnection() {
-
-		try {
-			Connection connection = DriverManager.getConnection(dbUrl, dbUser,dbPass);
-			connection.setAutoCommit(dbAutoCommit);
-			return connection;
-
-		} catch (SQLException e) {
-			log.error("Connection Failed! Check output console");
-			e.printStackTrace();
-			return null;
-		}
-	}
+	//
+	// try {
+	// Class.forName(dbDriver);
+	// log.info("PostgreSQL JDBC Driver Registered!");
+	// } catch (ClassNotFoundException e) {
+	// log.error("Where is your PostgreSQL JDBC Driver? "
+	// + "Include in your library path!", e);
+	// e.printStackTrace();
+	// return;
+	// }
+	// }
+	// private Connection createConnection() {
+	//
+	// try {
+	// Connection connection = DriverManager.getConnection(dbUrl,
+	// dbUser,dbPass);
+	// connection.setAutoCommit(dbAutoCommit);
+	// return connection;
+	//
+	// } catch (SQLException e) {
+	// log.error("Connection Failed! Check output console");
+	// e.printStackTrace();
+	// return null;
+	// }
+	// }
 
 	/*
 	 * (non-Javadoc)
@@ -103,7 +104,7 @@ public class CRUD implements DBConnection {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
-			ps = getConnection().prepareStatement(sql);
+			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, params);
 			rs = ps.executeQuery();
 			ResultSetMetaData rsMetaData = rs.getMetaData();
@@ -173,7 +174,7 @@ public class CRUD implements DBConnection {
 			String sql = String.format("DELETE FROM %s WHERE %s", nameTable,
 					params);
 
-			ps = getConnection().prepareStatement(sql);
+			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, value);
 			int numberRows = ps.executeUpdate();
 			log.info(String.format("Number of rows afected %s", numberRows));
@@ -232,7 +233,7 @@ public class CRUD implements DBConnection {
 
 			log.info(sql);
 
-			ps = getConnection().prepareStatement(sql);
+			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, ArrayUtils.addAll(value, valueIds));
 			int numberRows = ps.executeUpdate();
 			log.info(String.format("Number of rows afected %s", numberRows));
@@ -296,7 +297,7 @@ public class CRUD implements DBConnection {
 					nameTable, StringUtils.join(columns, ", "), nextVal,
 					paramsStr);
 
-			ps = getConnection().prepareStatement(sql,
+			ps = getLocalConnection().prepareStatement(sql,
 					Statement.RETURN_GENERATED_KEYS);
 
 			setValuesInPreparedStatement(ps, params);
@@ -346,8 +347,8 @@ public class CRUD implements DBConnection {
 	public void commit() {
 		if (!dbAutoCommit)
 			try {
-				getConnection().commit();
-				connection = null;
+				getLocalConnection().commit();
+
 			} catch (SQLException e) {
 				throw new LogsReaderException(e, "Error making commit.");
 			}
@@ -362,8 +363,7 @@ public class CRUD implements DBConnection {
 	@Override
 	public void rollbak() {
 		try {
-			getConnection().rollback();
-			connection = null;
+			getLocalConnection().rollback();
 		} catch (SQLException e) {
 			throw new LogsReaderException(e, "Error making rollback.");
 		}
@@ -376,7 +376,7 @@ public class CRUD implements DBConnection {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
-			ps = getConnection().prepareStatement(sql);
+			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, params);
 			rs = ps.executeQuery();
 			ResultSetMetaData rsMetaData = rs.getMetaData();
@@ -397,11 +397,18 @@ public class CRUD implements DBConnection {
 		} finally {
 			try {
 				ps.close();
-				if(rs != null)
+				if (rs != null)
 					rs.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private Connection getLocalConnection() throws SQLException {
+
+		Connection cnx = ds.getConnection();
+		cnx.setAutoCommit(dbAutoCommit);
+		return cnx;
 	}
 }
