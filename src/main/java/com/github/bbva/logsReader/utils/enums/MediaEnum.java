@@ -6,6 +6,6 @@ package com.github.bbva.logsReader.utils.enums;
  */
 public enum MediaEnum {
 	
-	YEAR , MONTH, DAY, HOUR;
+	YEAR , MONTH, DOY, HOUR;
 	
 }

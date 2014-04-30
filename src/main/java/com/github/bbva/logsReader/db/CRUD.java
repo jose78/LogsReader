@@ -78,11 +78,8 @@ public class CRUD implements DBConnection {
 	private Connection createConnection() {
 
 		try {
-
-			Connection connection = DriverManager.getConnection(dbUrl, dbUser,
-					dbPass);
+			Connection connection = DriverManager.getConnection(dbUrl, dbUser,dbPass);
 			connection.setAutoCommit(dbAutoCommit);
-
 			return connection;
 
 		} catch (SQLException e) {
@@ -90,7 +87,6 @@ public class CRUD implements DBConnection {
 			e.printStackTrace();
 			return null;
 		}
-
 	}
 
 	/*
@@ -99,6 +95,7 @@ public class CRUD implements DBConnection {
 	 * @see com.github.bbva.logsReader.db.DbConnection#read(java.lang.Class,
 	 * java.lang.String, java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> read(Class<T> clazz, String sql, Object... params) {
 
@@ -400,7 +397,8 @@ public class CRUD implements DBConnection {
 		} finally {
 			try {
 				ps.close();
-				rs.close();
+				if(rs != null)
+					rs.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

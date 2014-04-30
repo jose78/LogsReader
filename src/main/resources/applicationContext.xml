@@ -7,11 +7,44 @@
 
 	<context:component-scan base-package="com.github.bbva.logsReader.*" />
 
-	<context:property-placeholder location="classpath:spring//properties//config.properties" />
+	<context:property-placeholder
+		location="classpath:spring//properties//config.properties" />
 
-	<bean id="crudBean" class="com.github.bbva.logsReader.db.CRUD" init-method="init" />
-	
-	<bean id="fileUtilsBean" class="com.github.bbva.logsReader.utils.FilesUtils" init-method="init" />
-	
-	<bean id="daemonBean" class="com.github.bbva.logsReader.utils.Daemon" init-method="init" />
+	<bean id="crudBean" class="com.github.bbva.logsReader.db.CRUD"
+		init-method="init" />
+
+	<bean id="fileUtilsBean" class="com.github.bbva.logsReader.utils.FilesUtils"
+		init-method="init" />
+
+	<bean id="runMeTask" class="com.github.bbva.logsReader.utils.Daemon" />
+
+	<bean id="runMeJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+
+		<property name="targetObject" ref="runMeTask" />
+		<property name="targetMethod" value="task" />
+
+	</bean>
+
+	<!-- Simple Trigger, run every 5 seconds -->
+	<bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail" ref="runMeJob" />
+		<property name="repeatInterval" value="5000" />
+		<property name="startDelay" value="1000" />
+	</bean>
+
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="jobDetails">
+			<list>
+				<ref bean="runMeJob" />
+			</list>
+		</property>
+
+		<property name="triggers">
+			<list>
+				<ref bean="simpleTrigger" />
+			</list>
+		</property>
+	</bean>
 </beans>

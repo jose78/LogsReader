@@ -36,13 +36,13 @@ public class RepositoryCollections {
 	public List<ResultDto> getStandardDeviation(AgrupadorEnum agrupador, MediaEnum medida,
 			String inicioFechaIntervalo, String finFechaIntervalo) {
 
-		String sql = "SELECT  "
-				+ "           (extract(? FROM timestamp)) AS AGRUPADOR  ,  "
-				+ "           (extract(? FROM timestamp)) AS MEDIDA , "
+		String sql = String.format("SELECT  "
+				+ "           (extract(%s FROM timestamp)) AS AGRUPADOR  ,  "
+				+ "           (extract(%s FROM timestamp)) AS MEDIDA , "
 				+ "           (stddev_pop(elapsed)) AS TIME_RESPONSE  "
 				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS "
-				+ " WHERE timestamp BETWEEN TO_DATE(? , 'DD/MM/YYYY') AND TO_DATE(? , 'DD/MM/YYYY')"
-				+ " GROUP BY AGRUPADOR , MEDIDA";
+				+ " WHERE timestamp BETWEEN TO_TIMESTAMP(? , 'DD/MM/YYYY') AND TO_TIMESTAMP(? , 'DD/MM/YYYY')"
+				+ " GROUP BY AGRUPADOR , MEDIDA;", agrupador.name(), medida.name());
 
 		List<ResultDto> result = connection.read(ResultDto.class, sql,
 				new LoadData<ResultDto>() {
@@ -58,17 +58,18 @@ public class RepositoryCollections {
 							String y = rs.getString("TIME_RESPONSE");
 
 							List<TuplaDto> lstTupla = null;
-							if ((lstTupla = resultDto.getAgrupador().get(agrupador)) != null) {
-								lstTupla.add(new TuplaDto(x, y));
-							} else {
+							if ((lstTupla = resultDto.getAgrupador().get(agrupador)) == null) {
 								lstTupla = new ArrayList<TuplaDto>();
 								resultDto.getAgrupador().put(agrupador,	lstTupla);
 							}
+							lstTupla.add(new TuplaDto(x, y));
 						} while (rs.next());
 
 						return resultDto;
 					}
-				}, agrupador.name(), medida.name(), inicioFechaIntervalo, finFechaIntervalo);
+				}
+		, inicioFechaIntervalo, finFechaIntervalo
+		);
 
 		return result;
 	}

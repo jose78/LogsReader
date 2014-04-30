@@ -53,7 +53,7 @@ public class FilesUtils {
 				containerNameFilesLoaded.size()));
 	}
 
-	public void loaderFiles() {
+	public synchronized void loaderFiles() {
 		loadFiles(pathFilesOneMinut, pathFilesTenMinut);
 
 	}
