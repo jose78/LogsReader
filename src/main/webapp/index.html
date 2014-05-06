@@ -1,26 +1,10 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-body {
-	font: 10px sans-serif;
-}
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+<link
+	href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css"
+	rel="stylesheet">
 
-.axis path,.axis line {
-	fill: none;
-	stroke: #000;
-	shape-rendering: crispEdges;
-}
-
-.x.axis path {
-	display: none;
-}
-
-.line {
-	fill: none;
-	stroke: steelblue;
-	stroke-width: 1.5px;
-}
-</style>
 
 <script type="text/javascript">
 	function callService() {
@@ -29,12 +13,11 @@ body {
 
 		function handler() {
 
-			if (client.status == 200){
+			if (client.status == 200) {
 				alert("The request succeeded!\n\nThe response representation was:\n\n"
 						+ client.responseText);
-				 print(client.responseText);
-			}
-			else
+				print(client.responseText);
+			} else
 				alert(" ERROR : " + client.status + " " + client.statusText
 						+ ".");
 		}
@@ -45,71 +28,60 @@ body {
 		client.send();
 
 	}
-	
-	function print(info ){
-		alert("Start info");
-		var margin = {
-				top : 20,
-				right : 20,
-				bottom : 30,
-				left : 50
-			}, width = 960 - margin.left - margin.right, height = 500 - margin.top
-					- margin.bottom;
 
-			var parseDate = d3.time.format("%d/%b/%y").parse;
-
-			var x = d3.time.scale().range([ 0, width ]);
-
-			var y = d3.scale.linear().range([ height, 0 ]);
-
-			var xAxis = d3.svg.axis().scale(x).orient("bottom");
-
-			var yAxis = d3.svg.axis().scale(y).orient("left");
-
-			var line = d3.svg.line().x(function(d) {
-				return x(d.date);
-			}).y(function(d) {
-				return y(d.close);
-			});
-
-			var svg = d3.select("body").append("svg").attr("width",
-					width + margin.left + margin.right).attr("height",
-					height + margin.top + margin.bottom).append("g").attr(
-					"transform",
-					"translate(" + margin.left + "," + margin.top + ")");
-
-			d3.tsv.parse(info, function( info) {
-				data.forEach(function(d) {
-					d.date = parseDate(d.date);
-					d.close = +d.close;
+	function print(dataJSON) {
+		
+			var table = document.getElementById('tableServices');
+			var rowCount = table.rows.length;
+			
+			/* 		{
+			 "service": "NAME_SERVICE",
+			 "variance": 34343,
+			 "covariance": 343,
+			 "ok": 44,
+			 "fail_up": 16,
+			 "fail_down":40
+			 } */
+			 
+			 $.each(json, function(idx, data) {
+					alert(obj.tagName);
+					var row = table.getElementById("row"+data.service);
+					if(row == null)
+						row= addRow(table , dataJSON);
+					
+					var index = 0;
+					row.cell[index++].innerHTM = dataJSON.service;
+					row.cell[index++].innerHTM = dataJSON.variance;
+					row.cell[index++].innerHTM = dataJSON.standaDesviation;
+					row.cell[index++].innerHTM = dataJSON.ok;
+					row.cell[index++].innerHTM = dataJSON.failUp;
+					row.cell[index++].innerHTM = dataJSON.failDown;		
+					
+					console.log("Fila creada " + dataJSON.service);
+					
 				});
-
-				x.domain(d3.extent(data, function(d) {
-					return d.date;
-				}));
-				y.domain(d3.extent(data, function(d) {
-					return d.close;
-				}));
-
-				svg.append("g").attr("class", "x axis").attr("transform",
-						"translate(0," + height + ")").call(xAxis);
-
-				svg.append("g").attr("class", "y axis").call(yAxis).append("text")
-						.attr("transform", "rotate(-90)").attr("y", 6).attr("dy",
-								".71em").style("text-anchor", "end").text(
-								"Price ($)");
-
-				svg.append("path").datum(data).attr("class", "line")
-						.attr("d", line);
-			});
-			alert("END info");
+			}
+		}
 	}
+
+	function addRow(table, dataJSON) {
+
+		console.log("Creamos fila para: " + dataJSON.service);
+		
+		var rowCount = table.rows.length;
+		var row = table.insertRow(rowCount);
+		row.id = "row" + dataJSON.service;
+
+		return row;
+	
+		}
 	
 </script>
 <body>
 	<div class="navbar">
 		<div class="navbar-inner">
-			<a class="brand" href="#">ToDo API Client Demo</a>
+			<a class="brand" href="#">Cuadro de Mandos para la evaluación de
+				los tiempos de ejecución.</a>
 		</div>
 	</div>
 
@@ -117,5 +89,20 @@ body {
 
 	<script src="http://d3js.org/d3.v3.js"></script>
 	<script>
-
+		
 	</script>
+	<table class="reference" style="width: 60%" id="tableServices">
+		<tr>
+			<th>Servicio</th>
+			<th>Tiempo medio</th>
+			<th>Intervalo aceptable</th>
+			<th>% aceptables</th>
+			<th>% bajo el intervalo</th>
+			<th>% por encima del intervalo</th>
+		</tr>
+
+		<tr id="row"></tr>
+
+	</table>
+
+</body>

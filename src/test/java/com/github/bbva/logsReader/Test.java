@@ -3,6 +3,8 @@
  */
 package com.github.bbva.logsReader;
 
+import static org.junit.Assert.*;
+
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,4 +73,10 @@ public class Test {
 				inicioFechaIntervalo, finFechaIntervalo)));
 	}
 
+	
+	
+	@org.junit.Test
+	public void testInfoService() throws Exception {
+		log.info("InfoService-> " + repository.getListService().get(0));
+	}
 }
