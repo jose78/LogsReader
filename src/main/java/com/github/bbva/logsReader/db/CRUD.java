@@ -13,6 +13,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.text.html.parser.DTD;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -21,6 +23,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import com.github.bbva.logsReader.annt.Column;
+import com.github.bbva.logsReader.annt.DTO;
+import com.github.bbva.logsReader.annt.Entity;
 import com.github.bbva.logsReader.annt.Id;
 import com.github.bbva.logsReader.annt.Table;
 import com.github.bbva.logsReader.utils.ClassUtils;
@@ -118,7 +122,7 @@ public class CRUD implements DBConnection {
 			while (rs.next()) {
 				T data = null;
 
-				if (clazz.getAnnotation(Table.class) != null) {
+				if (clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(DTO.class) != null ) {
 					data = clazz.newInstance();
 
 					for (String columnName : columnNames) {

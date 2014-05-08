@@ -1,6 +1,7 @@
 package com.github.bbva.logsReader.entity;
 
 import com.github.bbva.logsReader.annt.Column;
+import com.github.bbva.logsReader.annt.Entity;
 import com.github.bbva.logsReader.annt.Id;
 import com.github.bbva.logsReader.annt.Table;
 
@@ -9,6 +10,7 @@ import com.github.bbva.logsReader.annt.Table;
  *  @author <a href="mailto:jose.clavero.contractor@bbva.com">jose.clavero - Neoris</a> 
  *
  */
+@Entity
 @Table(name = "FILES_LOADED", schema = "CONTAINER_LOGS_DATA")
 public class FileLoadedEntity {
 

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Google Visualization API Sample</title>
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+<script type="text/javascript">
+	google.load('visualization', '1', {
+		packages : [ 'corechart' ]
+	});
+</script>
+<script type="text/javascript">
+	function drawVisualization() {
+
+	}
+
+	google.setOnLoadCallback(drawVisualization);
+</script>
+
+
+</head>
+<body onload="load()">
+
+	Agrupación por:
+	<input type="text" value="1" id="agrupador" width="20px">
+
+
+		<body style="font-family: Arial; border: 0 none;">
+			<div id="visualization" style="width: 600px; height: 400px;"></div>
+		</body>
+	<script>
+		var parameterService = null;
+		var parameterTO = null;
+		var parameterAggregate = null;
+		var parameterStandaDesviation = null;
+
+		function callService(parameterService, agrupador) {
+			console.log("callService");
+
+			var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
+					+ parameterService + "&ancho=" + agrupador;
+
+			function handler() {
+
+				if (client.readyState == 4 && client.status == 200) {
+					console.log("Handler start");
+					console.log(client.responseText);
+					printData(client.responseText);
+					console.log("Handler FIN");
+				}
+			}
+
+			var client = new XMLHttpRequest();
+			client.onreadystatechange = handler;
+			client.open("GET", url);
+			client.send();
+
+		}
+
+		function printData(dataJson) {
+			console.log("printData:" + dataJson);
+
+			try {
+				var title = "Yearly Coffee Consumption by Country";
+				// Create and populate the data table.
+				var data = google.visualization.arrayToDataTable(dataJson);
+
+				console.log('Data create OK');
+				// Create and draw the visualization.
+				new google.visualization.BarChart(document
+						.getElementById('visualization')).draw(data, {
+					title : title,
+					width : 600,
+					height : 400,
+					vAxis : {
+						title : "Year"
+					},
+					hAxis : {
+						title : "Cups"
+					}
+				});
+			} catch (err) {
+				console.log('ERROR: ' + err);
+			}
+
+			console.log("printData FIN");
+
+		}
+
+		function load() {
+
+			console.log("log");
+
+			parameterService = GetUrlValue("service");
+			parameterTO = GetUrlValue("to");
+			parameterAggregate = GetUrlValue("aggregate");
+			parameterStandaDesviation = GetUrlValue("standaDesviation");
+			parameteragrupador = GetUrlValue("agrupador");
+
+			document.getElementById("agrupador").value = parameteragrupador;
+
+			console.log("service:" + parameterService);
+			console.log("@grupador:" + parameteragrupador);
+			console.log("to:" + parameterTO);
+			console.log("Aggregate:" + parameterAggregate);
+			console.log("StandaDesviation:" + parameterStandaDesviation);
+
+			callService(parameterService, parameteragrupador);
+		}
+
+		function decode(name) {
+			var find = '%20';
+			var re = new RegExp(find, 'g');
+			return name.replace(re, ' ');
+		}
+
+		function GetUrlValue(VarSearch) {
+			var SearchString = window.location.search.substring(1);
+			var VariableArray = SearchString.split('&');
+			for (var i = 0; i < VariableArray.length; i++) {
+				var KeyValuePair = VariableArray[i].split('=');
+				if (KeyValuePair[0] == VarSearch) {
+
+					return decode(KeyValuePair[1]);
+				}
+			}
+		}
+	</script>
+</body>
+</html>

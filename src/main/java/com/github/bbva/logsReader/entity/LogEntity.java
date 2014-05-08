@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 
 import com.github.bbva.logsReader.annt.Column;
+import com.github.bbva.logsReader.annt.Entity;
 import com.github.bbva.logsReader.annt.Id;
 import com.github.bbva.logsReader.annt.Table;
 
@@ -14,8 +15,9 @@ import com.github.bbva.logsReader.annt.Table;
  *  @author <a href="mailto:jose.clavero.contractor@bbva.com">jose.clavero - Neoris</a> 
  *
  */
+@Entity
 @Table(name = "BASIC_LOGS", schema = "CONTAINER_LOGS_DATA")
-public class LogDTO {
+public class LogEntity {
 
 	@Column(name = "id")
 	@Id(autoincrement = "id_BASIC_LOGS")
@@ -125,10 +127,10 @@ public class LogDTO {
 		this.timeStamp = timeStamp;
 	}
 	
-	public LogDTO() {
+	public LogEntity() {
 	}
 	
-	public LogDTO(Map<String,String> map) {
+	public LogEntity(Map<String,String> map) {
 		
 		this.Latency = Integer.parseInt(map.get("Latency"));
 		this.bytes =  Integer.parseInt(map.get("bytes"));
@@ -154,7 +156,7 @@ public class LogDTO {
 	public String getFileName() {
 		return fileName;
 	}
-	public LogDTO setFileName(String fileName) {
+	public LogEntity setFileName(String fileName) {
 		this.fileName = fileName;
 		return this;
 	}

@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.github.bbva.logsReader.utils.InfoServicesDTO;
+import com.github.bbva.logsReader.dto.InfoServicesDTO;
+import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.utils.LoadData;
 import com.github.bbva.logsReader.utils.LogsReaderException;
 
@@ -24,6 +26,8 @@ import com.github.bbva.logsReader.utils.LogsReaderException;
  */
 @Repository
 public class RepositoryCollections {
+
+	private static Logger log = Logger.getLogger(RepositoryCollections.class);
 
 	@Autowired
 	DBConnection connection;
@@ -88,18 +92,37 @@ public class RepositoryCollections {
 	}
 
 	/**
+	 * Retrieve the list of called
+	 * 
+	 * @param serviceName
+	 * @return
+	 */
+	public List<TuplaDto> getListaByGroupTimeElapsed(String ancho,
+			String serviceName) {
+		String sql = String
+				.format("SELECT substring (''||elapsed from 1 for  %s) as X  , count(*) AS Y  from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ? group by X ORDER BY X",
+						ancho);
+
+		
+		List<TuplaDto> lst =   connection.read(TuplaDto.class, sql, serviceName);
+
+		return lst;
+
+	}
+
+	/**
 	 * Retrieve a list with the name of all services executed.
 	 * 
 	 * @return List with the name of services.
 	 */
-	public List<InfoServicesDTO> getListService(String...params) {
-		
-		String paramWhere= "";
-		if(params.length > 0)
-			paramWhere= String.format("AND LABEL = '%s' ", params[0]);
-		
+	public List<InfoServicesDTO> getListService(String... params) {
+
+		String paramWhere = "";
+		if (params.length > 0)
+			paramWhere = String.format("AND LABEL = '%s' ", params[0]);
+
 		StringBuilder sql = new StringBuilder();
-		sql.append("  SELECT  sub.label, sub.F_AVG, sub.standaDesviation ,  sub.F_MAX,F_MIN,");
+		sql.append("  SELECT  sub.label, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
 		sql.append("  ROUND(");
 		sql.append("  100.0 * (");
 		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
@@ -122,8 +145,9 @@ public class RepositoryCollections {
 		sql.append("  WHERE responsecode = 200 ");
 		sql.append(paramWhere);
 		sql.append("  GROUP by LABEL ) main ");
-		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = 200 GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ");
+		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = 200 GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
 
+		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
 				sql.toString());
 		return result;

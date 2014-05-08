@@ -3,7 +3,7 @@
  */
 package com.github.bbva.logsReader;
 
-import static org.junit.Assert.*;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
@@ -13,16 +13,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.db.RepositoryCollections;
+import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.entity.FileLoadedEntity;
-import com.github.bbva.logsReader.entity.LogDTO;
 import com.github.bbva.logsReader.utils.Daemon;
 import com.github.bbva.logsReader.utils.FilesUtils;
-import com.github.bbva.logsReader.utils.enums.AgrupadorEnum;
-import com.github.bbva.logsReader.utils.enums.MediaEnum;
 import com.google.gson.Gson;
 
 /**
- *  @author <a href="mailto:jose.clavero.contractor@bbva.com">jose.clavero - Neoris</a> 
+ * @author <a href="mailto:jose.clavero.contractor@bbva.com">jose.clavero -
+ *         Neoris</a>
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -66,17 +65,24 @@ public class Test {
 
 	@org.junit.Test
 	public void tesStandardDeviation() throws Exception {
-		
-		String inicioFechaIntervalo = null; //"01/01/2013";
-		String finFechaIntervalo= null; // "22/4/2014";
+
+		String inicioFechaIntervalo = null; // "01/01/2013";
+		String finFechaIntervalo = null; // "22/4/2014";
 		log.info(new Gson().toJson(repository.getStandardDeviation(
 				inicioFechaIntervalo, finFechaIntervalo)));
 	}
 
-	
-	
 	@org.junit.Test
 	public void testInfoService() throws Exception {
-		log.info("InfoService-> " + repository.getListService().get(0));
+		List<InfoServicesDTO> lsr = repository.getListService("Login SLOD");
+		for (InfoServicesDTO infoServicesDTO : lsr) {
+			log.info("InfoService-> " + infoServicesDTO);
+		}
+
+	}
+
+	@org.junit.Test
+	public void testListCalled() throws Exception {
+		log.info(repository.getListaByGroupTimeElapsed("1", "Login ENPP BMES"));
 	}
 }

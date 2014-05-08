@@ -4,10 +4,13 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.github.bbva.logsReader.annt.Column;
 import com.github.bbva.logsReader.annt.Id;
+import com.github.bbva.logsReader.db.CRUD;
+import com.github.bbva.logsReader.utils.enums.TypeConverterEnum;
 
 /**
  * 
@@ -17,8 +20,10 @@ import com.github.bbva.logsReader.annt.Id;
 @Component
 public class ClassUtils {
 
+	private static Logger log = Logger.getLogger(ClassUtils.class);
 	public <T> void setValueInColumn(T data, String columnName, Object value) {
 
+		String format= null;
 		try {
 			Field[] fields = data.getClass().getDeclaredFields();
 			for (Field field : fields) {
@@ -26,12 +31,15 @@ public class ClassUtils {
 				if (anntColumn != null
 						&& anntColumn.name().toLowerCase()
 								.equals(columnName.toLowerCase())) {
+					format = value.getClass().getSimpleName() +" to " + field.getType();
+					value = TypeConverterEnum.get(value.getClass().getSimpleName(), field.getType().getSimpleName()).converterData(value);
 					field.setAccessible(true);
 					field.set(data, value);
 					break;
 				}
 			}
-		} catch (Exception e) {
+		} catch (Exception e) { 
+			log.error("Error "+format , e);
 			e.printStackTrace();
 		}
 	}

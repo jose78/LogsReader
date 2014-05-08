@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.entity.FileLoadedEntity;
-import com.github.bbva.logsReader.entity.LogDTO;
+import com.github.bbva.logsReader.entity.LogEntity;
 
 /**
  * 
@@ -88,12 +88,12 @@ public class FilesUtils {
 						/*
 						 * 2º retrieve and save in db all logDto.
 						 */
-						List<LogDTO> list = openFile(file);
+						List<LogEntity> list = openFile(file);
 						if (list == null)
 							continue;
 
-						List<LogDTO> lstError = new ArrayList<LogDTO>();
-						for (LogDTO logDTO : list) {
+						List<LogEntity> lstError = new ArrayList<LogEntity>();
+						for (LogEntity logDTO : list) {
 							try {
 								connection.insert(logDTO);
 							} catch (Exception e) {
@@ -115,7 +115,7 @@ public class FilesUtils {
 					
 					containerNameFilesLoaded.remove(fileName);
 					connection.delete(new FileLoadedEntity(file.getAbsolutePath()));
-					connection.delete(new LogDTO().setFileName(file.getAbsolutePath()));
+					connection.delete(new LogEntity().setFileName(file.getAbsolutePath()));
 					log.error(" Clean Error from DB -> OK.", e);
 					e.printStackTrace();
 				}
@@ -124,11 +124,11 @@ public class FilesUtils {
 		}
 	}
 
-	private List<LogDTO> openFile(File file) throws IOException {
+	private List<LogEntity> openFile(File file) throws IOException {
 
 		BufferedReader br = null;
 		try {
-			List<LogDTO> containerData = new ArrayList<LogDTO>();
+			List<LogEntity> containerData = new ArrayList<LogEntity>();
 			br = new BufferedReader(new FileReader(file));
 			/*
 			 * Retrieve the Head.
@@ -165,7 +165,7 @@ public class FilesUtils {
 	 *            array wth the value.
 	 * @return Object.
 	 */
-	private LogDTO loadData(String[] head, String[] source, String pathFile) {
+	private LogEntity loadData(String[] head, String[] source, String pathFile) {
 		if (source.length != head.length)
 			throw new LogsReaderException("head:[%s] source:[%s]", head.length,
 					source.length);
@@ -174,6 +174,6 @@ public class FilesUtils {
 			data.put(head[index], source[index]);
 		}
 		data.put("NAME_file", pathFile);
-		return new LogDTO(data);
+		return new LogEntity(data);
 	}
 }

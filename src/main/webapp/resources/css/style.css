@@ -10,6 +10,7 @@ table.tecspec th,table.tecspec td {
 table.reference,table.tecspec {
 	border-collapse: collapse;
 	width: 100%;
+	
 }
 
 table.reference tr:nth-child(odd) {
