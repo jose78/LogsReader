@@ -83,6 +83,6 @@ public class Test {
 
 	@org.junit.Test
 	public void testListCalled() throws Exception {
-		log.info(repository.getListaByGroupTimeElapsed("1", "Login ENPP BMES"));
+		log.info(repository.getListaByGroupTimeElapsed("1", "Login ENPP BMES","30"));
 	}
 }

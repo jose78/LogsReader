@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import com.github.bbva.logsReader.annt.Column;
@@ -126,6 +127,7 @@ public class CRUD implements DBConnection {
 		List<T> lst = new ArrayList<T>();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
+		log.info("SQL: " + sql);
 		try {
 			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, params);
@@ -137,6 +139,7 @@ public class CRUD implements DBConnection {
 			for (int index = 0; index < countColumn; index++) {
 				columnNames[index] = rsMetaData.getColumnName(index + 1);
 			}
+			
 
 			while (rs.next()) {
 				T data = null;
@@ -280,7 +283,7 @@ public class CRUD implements DBConnection {
 	 * @see com.github.bbva.logsReader.db.DbConnection#insert(T)
 	 */
 	@Override
-	public <T> T insert(T data) {
+	synchronized public <T> T insert(T data) {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {
@@ -400,11 +403,12 @@ public class CRUD implements DBConnection {
 	// }
 
 	@Override
-	public <T> List<T> read(Class<T> clazz, String sql, LoadData<T> loader,
+	public <T> List<T> read(RowMapper<T> loader, Class<T> clazz, String sql,
 			Object... params) {
 		List<T> lst = new ArrayList<T>();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
+		log.info("SQL: " + sql);
 		try {
 			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, params);
@@ -416,9 +420,10 @@ public class CRUD implements DBConnection {
 			for (int index = 0; index < countColumn; index++) {
 				columnNames[index] = rsMetaData.getColumnName(index + 1);
 			}
-
+			
+			int count= 0;
 			while (rs.next()) {
-				T data = loader.load(rs);
+				T data = loader.mapRow(rs , count++);
 				lst.add(data);
 			}
 			return lst;

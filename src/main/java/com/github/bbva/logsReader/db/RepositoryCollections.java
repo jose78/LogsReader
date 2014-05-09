@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +12,10 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
-import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.utils.LoadData;
 import com.github.bbva.logsReader.utils.LogsReaderException;
 
@@ -92,22 +93,36 @@ public class RepositoryCollections {
 	}
 
 	/**
-	 * Retrieve the list of calleds gruped by  
+	 * Retrieve the list of calleds gruped by
 	 * 
 	 * @param serviceName
 	 * @return
 	 */
-	public List<TuplaDto> getListaByGroupTimeElapsed(String ancho,
-			String serviceName) {
+	public List<List> getListaByGroupTimeElapsed(String ancho,
+			String serviceName, String timeOut) {
 		String sql = String
-				.format("SELECT substring (''||elapsed from 1 for  %s) as X  , count(*) AS Y  from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ? group by X ORDER BY X",
-						ancho);
+				.format(""
+						+ "SELECT  MAX (elapsed)  as maxi, "
+						+ "substring (''||elapsed from 1 for  %s)||repeat('0',char_length (''||elapsed)-1)|| '-'||  "
+						+ "substring (''||elapsed from 1 for  %s)||repeat('9',char_length (''||elapsed)-1)  as X  , "
+						+ "count(*) AS Y  , "
+						+ "25 as timeOut from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ?  group by X ORDER BY maxi ",
+						ancho,ancho,timeOut);
 
-		
-		List<TuplaDto> lst =   connection.read(TuplaDto.class, sql, serviceName);
+	
+		List<List> lst = connection.read(new RowMapper<List>() {
+
+			@Override
+			public List mapRow(ResultSet rs, int arg1) throws SQLException {
+				List<Object> lst = new ArrayList<Object>();
+				lst.add(rs.getObject("x"));
+				lst.add(rs.getObject("y"));
+				lst.add(rs.getObject("timeOut"));
+				return lst;
+			}
+		}, List.class, sql, serviceName);
 
 		return lst;
-
 	}
 
 	/**
@@ -142,10 +157,10 @@ public class RepositoryCollections {
 		sql.append("  avg(elapsed) AS F_AVG , ");
 		sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
 		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS ");
-		sql.append("  WHERE responsecode = 200 ");
+		sql.append("  WHERE responsecode = '200' ");
 		sql.append(paramWhere);
 		sql.append("  GROUP by LABEL ) main ");
-		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = 200 GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
+		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = '200' GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
 
 		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,

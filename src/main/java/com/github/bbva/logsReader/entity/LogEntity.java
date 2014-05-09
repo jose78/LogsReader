@@ -42,7 +42,7 @@ public class LogEntity {
 	private String label;
 	
 	@Column(name = "responseCode")
-	private int responseCode;
+	private String responseCode;
 	
 	@Column(name = "responseMessage")
 	private String responseMessage;
@@ -96,10 +96,10 @@ public class LogEntity {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	public int getResponseCode() {
+	public String getResponseCode() {
 		return responseCode;
 	}
-	public void setResponseCode(int responseCode) {
+	public void setResponseCode(String responseCode) {
 		this.responseCode = responseCode;
 	}
 	public String getResponseMessage() {
@@ -138,7 +138,7 @@ public class LogEntity {
 		this.elapsed =  Integer.parseInt(map.get("elapsed"));
 		this.failureMessage = map.get("failureMessage");
 		this.label = map.get("label");
-		this.responseCode =  Integer.parseInt(map.get("responseCode"));
+		this.responseCode =  map.get("responseCode");
 		this.responseMessage = map.get("responseMessage");
 		this.success = map.get("success");
 		this.threadName = map.get("threadName");

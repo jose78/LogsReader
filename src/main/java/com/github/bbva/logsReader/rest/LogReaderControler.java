@@ -77,11 +77,12 @@ public class LogReaderControler {
 	public @ResponseBody
 	 String getListaByGroupTimeElapsed(
 			@RequestParam(value = "ancho" , defaultValue="1") String ancho,
-			@RequestParam(value = "serviceName") String serviceName) {
-		List<TuplaDto> result = repository.getListaByGroupTimeElapsed(ancho,
-				serviceName);
+			@RequestParam(value = "serviceName") String serviceName,
+			@RequestParam(value = "timeOut") String timeOut) {
+		List<List> result = repository.getListaByGroupTimeElapsed(ancho,
+				serviceName,timeOut);
 		
-		ResultDTO dtoREsult= new ResultDTO("Eje Y", "Eje x").setResult(result);
+		ResultDTO dtoREsult= new ResultDTO("Intervalos de milisegundos", "Nº de ejecucionies",result, "Agrupado por "+ancho,"Nº de ejecuciones" , "Time Out");
 		
 		return dtoREsult.toString();
 	}

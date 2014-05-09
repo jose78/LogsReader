@@ -89,14 +89,14 @@ public class FilesUtils {
 						 * 2º retrieve and save in db all logDto.
 						 */
 						List<LogEntity> list = openFile(file);
-						if (list == null)
+						if (list == null || list.size() == 0)
 							continue;
 
 						List<LogEntity> lstError = new ArrayList<LogEntity>();
 						for (LogEntity logDTO : list) {
 							try {
 								connection.insert(logDTO);
-							} catch (Exception e) {
+							} catch (Throwable e) {
 								lstError.add(logDTO);
 							}
 						}
@@ -140,8 +140,8 @@ public class FilesUtils {
 					String[] source = line.split(",");
 					containerData.add(loadData(head, source,file.getAbsolutePath()));
 				} catch (Exception e) {
-					log.error(String.format("Archivo %s mal formateado -> %s",
-							file.getAbsolutePath(), e.getMessage()));
+					log.error(String.format("Archivo %s mal formateado -> ERROR:[%s];   Line:[%s].",
+							file.getAbsolutePath(), e.getMessage() , line));
 				}
 			}
 			return containerData;

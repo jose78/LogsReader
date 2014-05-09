@@ -2,7 +2,7 @@ package com.github.bbva.logsReader.db;
 
 import java.util.List;
 
-import com.github.bbva.logsReader.utils.LoadData;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * Interface that provides a pattern CRUD  as façade to access  to DataBase . 
@@ -28,7 +28,7 @@ public interface DBConnection {
 	 * @param params
 	 * @return
 	 */
-	public abstract <T> List<T> read(Class<T> clazz, String sql, LoadData<T> loader,
+	public abstract <T> List<T> read(RowMapper<T> loader, Class<T> clazz, String sql,
 			Object... params);
 
 	/**
