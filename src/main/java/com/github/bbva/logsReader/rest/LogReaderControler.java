@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.db.RepositoryCollections;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
+import com.github.bbva.logsReader.dto.ResultDTO;
 import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.utils.FrecuencyGaussianDto;
 
@@ -72,16 +73,17 @@ public class LogReaderControler {
 	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, 
 			params = {"ancho", "serviceName"}, 
 			method = { RequestMethod.GET }, 
-			produces = "application/json")
+			produces = "Text/plain")
 	public @ResponseBody
-	List<TuplaDto> getListaByGroupTimeElapsed(
+	 String getListaByGroupTimeElapsed(
 			@RequestParam(value = "ancho" , defaultValue="1") String ancho,
 			@RequestParam(value = "serviceName") String serviceName) {
 		List<TuplaDto> result = repository.getListaByGroupTimeElapsed(ancho,
 				serviceName);
 		
+		ResultDTO dtoREsult= new ResultDTO("Eje Y", "Eje x").setResult(result);
 		
-		return result;
+		return dtoREsult.toString();
 	}
 
 }

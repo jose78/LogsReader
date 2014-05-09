@@ -74,9 +74,9 @@ public class FilesUtils {
 			File files[] = directory.listFiles();
 			for (File file : files) {
 				try {
-					if (file.isFile()
-							&& !containerNameFilesLoaded.contains(file
-									.getAbsolutePath())) {
+					if (file.isFile() 
+							&& !file.getName().contains("errors_xml")
+							&& !containerNameFilesLoaded.contains(file.getAbsolutePath())) {
 						fileName = file.getName();
 
 						/*
@@ -112,10 +112,6 @@ public class FilesUtils {
 					}
 
 				} catch (Exception e) {
-					
-					containerNameFilesLoaded.remove(fileName);
-					connection.delete(new FileLoadedEntity(file.getAbsolutePath()));
-					connection.delete(new LogEntity().setFileName(file.getAbsolutePath()));
 					log.error(" Clean Error from DB -> OK.", e);
 					e.printStackTrace();
 				}
@@ -140,19 +136,20 @@ public class FilesUtils {
 			 * Map the data.
 			 */
 			while ((line = br.readLine()) != null) {
-				// sb.append(line);
-				String[] source = line.split(",");
-				containerData
-						.add(loadData(head, source, file.getAbsolutePath()));
+				try {
+					String[] source = line.split(",");
+					containerData.add(loadData(head, source,file.getAbsolutePath()));
+				} catch (Exception e) {
+					log.error(String.format("Archivo %s mal formateado -> %s",
+							file.getAbsolutePath(), e.getMessage()));
+				}
 			}
 			return containerData;
 		} catch (Exception e) {
-			log.error(String.format("Archivo %s mal formateado",
-					file.getAbsolutePath()));
+			e.printStackTrace();
 			return null;
 		} finally {
 			br.close();
-
 		}
 	}
 

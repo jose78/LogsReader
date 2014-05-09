@@ -27,104 +27,177 @@
 
 		<body style="font-family: Arial; border: 0 none;">
 			<div id="visualization" style="width: 600px; height: 400px;"></div>
-		</body>
-	<script>
-		var parameterService = null;
-		var parameterTO = null;
-		var parameterAggregate = null;
-		var parameterStandaDesviation = null;
+		</body> <script>
+			var parameterService = null;
+			var parameterTO = null;
+			var parameterAggregate = null;
+			var parameterStandaDesviation = null;
 
-		function callService(parameterService, agrupador) {
-			console.log("callService");
+			function callService(parameterService, agrupador) {
+				console.log("callService");
 
-			var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
-					+ parameterService + "&ancho=" + agrupador;
+				var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
+						+ parameterService + "&ancho=" + agrupador;
 
-			function handler() {
+				function handler() {
 
-				if (client.readyState == 4 && client.status == 200) {
-					console.log("Handler start");
-					console.log(client.responseText);
-					printData(client.responseText);
-					console.log("Handler FIN");
+					if (client.readyState == 4 && client.status == 200) {
+						console.log("Handler start");
+						console.log(client.responseText);
+						printData(client.responseText);
+						console.log("Handler FIN");
+					}
 				}
+
+				var client = new XMLHttpRequest();
+				client.onreadystatechange = handler;
+				client.open("GET", url);
+				client.send();
+
 			}
 
-			var client = new XMLHttpRequest();
-			client.onreadystatechange = handler;
-			client.open("GET", url);
-			client.send();
+			function printData(dataJson) {
 
-		}
+				var json = JSON.parse(dataJson);
+				console.log(json);
+				try {
 
-		function printData(dataJson) {
-			console.log("printData:" + dataJson);
+					var title = "Yearly Coffee Consumption by Country";
+					var data = google.visualization.arrayToDataTable(json.listData);
+					
+					for (index = 1; index < json.listData.length ; index++) {
+						console.log(json.listData[index]);
+						json.listData[index].push(parameterTO);	
+						console.log(json.listData[index]);
+					}
+					
+					
+						
+						
+					var options = {
+						title : title,
+						width : 1000,
+						height : 600,
+						vAxis : {
+							title : json.axis_Y
+						},
+						hAxis : {
+							title : json.axis_X
+						},
+						seriesType : "bars",
+						series : {
+							5 : {
+								type : "line"
+							}
+						}
+					};
 
-			try {
-				var title = "Yearly Coffee Consumption by Country";
-				// Create and populate the data table.
-				var data = google.visualization.arrayToDataTable(dataJson);
+					var chart = new google.visualization.ComboChart(document
+							.getElementById('visualization'));
+					chart.draw(data, options);
 
-				console.log('Data create OK');
-				// Create and draw the visualization.
-				new google.visualization.BarChart(document
-						.getElementById('visualization')).draw(data, {
-					title : title,
-					width : 600,
-					height : 400,
+					console.log('Data create OK');
+
+				} catch (err) {
+					console.log('ERROR: ' + err);
+				}
+
+				console.log("printData FIN");
+
+			}
+
+			function drawVisualization() {
+				// Some raw data (not necessarily accurate)
+				var data = google.visualization.arrayToDataTable([
+						[ 'Month', 'Bolivia', 'Ecuador', 'Madagascar',
+								'Papua New Guinea', 'Rwanda', 'Average' ],
+						[ '2004/05', 165, 938, 522, 998, 450, 614.6 ],
+						[ '2005/06', 135, 1120, 599, 1268, 288, 682 ],
+						[ '2006/07', 157, 1167, 587, 807, 397, 623 ],
+						[ '2007/08', 139, 1110, 615, 968, 215, 609.4 ],
+						[ '2008/09', 136, 691, 629, 1026, 366, 569.6 ] ]);
+
+				var options = {
+					title : 'Monthly Coffee Production by Country',
 					vAxis : {
-						title : "Year"
+						title : "Cups"
 					},
 					hAxis : {
-						title : "Cups"
+						title : "Month"
+					},
+					seriesType : "bars",
+					series : {
+						5 : {
+							type : "line"
+						}
 					}
-				});
-			} catch (err) {
-				console.log('ERROR: ' + err);
+				};
+
+				var chart = new google.visualization.ComboChart(document
+						.getElementById('chart_div'));
+				chart.draw(data, options);
+			}
+			google.setOnLoadCallback(drawVisualization);
+
+			function toMatrix(tasks_data) {
+				var matrix = [];
+				var row = [];
+				var temp = tasks_data.split(',')
+				var len = temp.length
+				if (len / 3 != parseInt(len / 3)) {
+					return false
+				}
+				;// error condition, string must have a length multiple of 3
+
+				for (n = 1; n < len + 1; ++n) {
+					row.push(temp[n - 1]);
+					if (n / 3 == parseInt(n / 3)) {
+						matrix.push(row);
+						var row = []
+					}
+					;// each 3 items create a new row
+				}
+				return matrix
 			}
 
-			console.log("printData FIN");
+			function load() {
 
-		}
+				console.log("log");
 
-		function load() {
+				parameterService = GetUrlValue("service");
+				parameterTO = GetUrlValue("to");
+				parameterAggregate = GetUrlValue("aggregate");
+				parameterStandaDesviation = GetUrlValue("standaDesviation");
+				parameteragrupador = GetUrlValue("agrupador");
 
-			console.log("log");
+				document.getElementById("agrupador").value = parameteragrupador;
 
-			parameterService = GetUrlValue("service");
-			parameterTO = GetUrlValue("to");
-			parameterAggregate = GetUrlValue("aggregate");
-			parameterStandaDesviation = GetUrlValue("standaDesviation");
-			parameteragrupador = GetUrlValue("agrupador");
+				console.log("service:" + parameterService);
+				console.log("@grupador:" + parameteragrupador);
+				console.log("to:" + parameterTO);
+				console.log("Aggregate:" + parameterAggregate);
+				console.log("StandaDesviation:" + parameterStandaDesviation);
 
-			document.getElementById("agrupador").value = parameteragrupador;
+				callService(parameterService, parameteragrupador);
+			}
 
-			console.log("service:" + parameterService);
-			console.log("@grupador:" + parameteragrupador);
-			console.log("to:" + parameterTO);
-			console.log("Aggregate:" + parameterAggregate);
-			console.log("StandaDesviation:" + parameterStandaDesviation);
+			function decode(name) {
+				var find = '%20';
+				var re = new RegExp(find, 'g');
+				return name.replace(re, ' ');
+			}
 
-			callService(parameterService, parameteragrupador);
-		}
+			function GetUrlValue(VarSearch) {
+				var SearchString = window.location.search.substring(1);
+				var VariableArray = SearchString.split('&');
+				for (var i = 0; i < VariableArray.length; i++) {
+					var KeyValuePair = VariableArray[i].split('=');
+					if (KeyValuePair[0] == VarSearch) {
 
-		function decode(name) {
-			var find = '%20';
-			var re = new RegExp(find, 'g');
-			return name.replace(re, ' ');
-		}
-
-		function GetUrlValue(VarSearch) {
-			var SearchString = window.location.search.substring(1);
-			var VariableArray = SearchString.split('&');
-			for (var i = 0; i < VariableArray.length; i++) {
-				var KeyValuePair = VariableArray[i].split('=');
-				if (KeyValuePair[0] == VarSearch) {
-
-					return decode(KeyValuePair[1]);
+						return decode(KeyValuePair[1]);
+					}
 				}
 			}
-		}
-	</script>
+		</script>
 </body>
 </html>

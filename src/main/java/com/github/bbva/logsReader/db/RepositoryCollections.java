@@ -92,7 +92,7 @@ public class RepositoryCollections {
 	}
 
 	/**
-	 * Retrieve the list of called
+	 * Retrieve the list of calleds gruped by  
 	 * 
 	 * @param serviceName
 	 * @return

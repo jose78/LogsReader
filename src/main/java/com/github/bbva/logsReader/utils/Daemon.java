@@ -17,8 +17,17 @@ public class Daemon {
 	@Autowired
 	FilesUtils filesUtils;
 	
+	private boolean semaphore = true;
+	
 	public void task() throws InterruptedException{
+		if(semaphore && (semaphore = inExecution())){}
+	}
+	
+	synchronized private boolean inExecution(){
+		semaphore = false;
 		log.info("Executing DAEMON.");
 		filesUtils.loaderFiles();
+		log.info("END DAEMON.");
+		return true;		
 	}
 }

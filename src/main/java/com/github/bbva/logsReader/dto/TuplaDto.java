@@ -12,19 +12,19 @@ import com.github.bbva.logsReader.annt.DTO;
 public class TuplaDto {
 
 	@Column(name="X")
-	Integer x;
+	int x;
 	
 	@Column(name= "Y")
 	String y;
 
 	public TuplaDto() {
 	}
-	public TuplaDto( String y ,  Integer x) {
+	public TuplaDto( String y ,  int x) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public Integer getX() {
+	public int getX() {
 		return x;
 	}
 
@@ -34,7 +34,7 @@ public class TuplaDto {
 
 	@Override
 	public String toString() {
-		return String.format("'%s', %s",  y , x);
+		return String.format(" %s, %s",  y , x);
 	}
 
 }

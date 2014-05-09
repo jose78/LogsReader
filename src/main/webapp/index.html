@@ -46,41 +46,39 @@
 			console.log(data);
 			var row = document.getElementById("row" + data.service);
 
-			if (row == null){
-				row = addRow(table, data.service);
+			if (row == null) {
+				row = addRow(table, data.service, data.aggregate);
 				row.insertCell(0).innerHTML = data.service;
 				row.insertCell(1).innerHTML = data.aggregate;
 				row.insertCell(2).innerHTML = data.standaDesviation;
-				row.insertCell(3).innerHTML = data.ok +" %";
-				row.insertCell(4).innerHTML = data.failDown +" %";
-				row.insertCell(5).innerHTML = data.failUp +" %";
+				row.insertCell(3).innerHTML = data.ok + " %";
+				row.insertCell(4).innerHTML = data.failDown + " %";
+				row.insertCell(5).innerHTML = data.failUp + " %";
 
-			}else{				
+			} else {
 				row.cells[1].innerHTML = data.aggregate;
 				row.cells[2].innerHTML = data.standaDesviation;
-				row.cells[3].innerHTML = data.ok +" %";
-				row.cells[4].innerHTML = data.failDown +" %";
-				row.cells[5].innerHTML = data.failUp +" %";				
+				row.cells[3].innerHTML = data.ok + " %";
+				row.cells[4].innerHTML = data.failDown + " %";
+				row.cells[5].innerHTML = data.failUp + " %";
 			}
-				
 
-			
 			console.log("Row obtenido: " + row.id);
 			console.log(row);
-
 
 		}
 	}
 
-	function showPanel( nameService) {
-		console.log("showPanel:" + nameService);
-	
+	function showPanel(nameService, aggregate) {
+		console.log("showPanel:" + nameService + "   - " + aggregate);
 
-		 window.open("panel.html?service="+nameService, "MsgWindow" + nameService, "width=200, height=100");
-		
-		
+		var agrupador = document.getElementById('agrupador').value;
+		window.open("panel.html?service=" + nameService + '&agrupador='
+				+ agrupador + '&aggregate=' + aggregate + '&to=25', "MsgWindow"
+				+ nameService, "width=800, height=700");
+
 	}
-	function addRow(table, nameService) {
+	function addRow(table, nameService, aggregate) {
 
 		console.log("Creamos fila para: " + nameService);
 
@@ -88,8 +86,10 @@
 		var row = table.insertRow(rowCount);
 		row.id = "row" + nameService;
 
-		row.onclick= function(){ showPanel(nameService);};
-		
+		row.onclick = function() {
+			showPanel(nameService, aggregate);
+		};
+
 		console.log(row);
 		return row;
 
@@ -103,15 +103,16 @@
 		</div>
 	</div>
 
+
+	Agrupador
+	<input type="text" value="1" id="agrupador">
 	<input type="button" value="Text" onclick="callService()">
 
-	<script src="http://d3js.org/d3.v3.js"></script>
-	<script>
-		
+
 	</script>
 	<div align="center">
 		<table class="reference" style="width: 80%" id="tableServices">
-			<tr onclick='showPanel("trrrr")'>
+			<tr>
 				<th>Servicio</th>
 				<th>Tiempo medio</th>
 				<th>Intervalo aceptable</th>

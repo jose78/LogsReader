@@ -4,6 +4,7 @@
 package com.github.bbva.logsReader.db;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -12,8 +13,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.text.html.parser.DTD;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -52,20 +51,40 @@ public class CRUD implements DBConnection {
 	@Value("${com.github.bbva.logReader.db.pass}")
 	private String dbPass;
 
+	private Connection connection;
+	
 	@Autowired
 	private ClassUtils classUtils;
 
 	@Autowired
 	private DriverManagerDataSource ds;
 
-	
-
-	public  void init() {
+	public void init() {
 		log.info("-------- PostgreSQL JDBC Connection Testing ------------");
 		ds.setDriverClassName(dbDriver);
 		ds.setPassword(dbPass);
 		ds.setUrl(dbUrl);
 		ds.setUsername(dbUser);
+		try {
+			Class.forName(dbDriver);
+			log.info("PostgreSQL JDBC Driver Registered!");
+		} catch (ClassNotFoundException e) {
+			log.error("Where is your PostgreSQL JDBC Driver? "
+					+ "Include in your library path!", e);
+			e.printStackTrace();
+			return;
+		}
+		try {
+			 connection = DriverManager.getConnection(dbUrl, dbUser,
+					dbPass);
+			connection.setAutoCommit(dbAutoCommit);
+			
+
+		} catch (SQLException e) {
+			log.error("Connection Failed! Check output console");
+			e.printStackTrace();
+	
+		}
 	}
 
 	//
@@ -122,7 +141,8 @@ public class CRUD implements DBConnection {
 			while (rs.next()) {
 				T data = null;
 
-				if (clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(DTO.class) != null ) {
+				if (clazz.getAnnotation(Entity.class) != null
+						|| clazz.getAnnotation(DTO.class) != null) {
 					data = clazz.newInstance();
 
 					for (String columnName : columnNames) {
@@ -342,40 +362,42 @@ public class CRUD implements DBConnection {
 		}
 	}
 
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see com.github.bbva.logsReader.db.DBConnection#commit()
-//	 */
-//	@Override
-//	public void commit() {
-//		if (!dbAutoCommit)
-//			try {
-//				Connection cnx= getLocalConnection();
-//				if(cnx != null && cnx.getTransactionIsolation() == cnx.TRANSACTION_READ_UNCOMMITTED)
-//					cnx.commit();
-//
-//			} catch (SQLException e) {
-//				throw new LogsReaderException(e, "Error making commit.");
-//			}
-//
-//	}
-//
-//	/*
-//	 * (non-Javadoc)
-//	 * 
-//	 * @see com.github.bbva.logsReader.db.DBConnection#rollbak()
-//	 */
-//	@Override
-//	public void rollbak() {
-//		try {
-//			Connection cnx= getLocalConnection();
-//			if(cnx != null && cnx.getTransactionIsolation() == cnx.TRANSACTION_READ_UNCOMMITTED)
-//				cnx.commit();
-//		} catch (SQLException e) {
-//			throw new LogsReaderException(e, "Error making rollback.");
-//		}
-//	}
+	// /*
+	// * (non-Javadoc)
+	// *
+	// * @see com.github.bbva.logsReader.db.DBConnection#commit()
+	// */
+	// @Override
+	// public void commit() {
+	// if (!dbAutoCommit)
+	// try {
+	// Connection cnx= getLocalConnection();
+	// if(cnx != null && cnx.getTransactionIsolation() ==
+	// cnx.TRANSACTION_READ_UNCOMMITTED)
+	// cnx.commit();
+	//
+	// } catch (SQLException e) {
+	// throw new LogsReaderException(e, "Error making commit.");
+	// }
+	//
+	// }
+	//
+	// /*
+	// * (non-Javadoc)
+	// *
+	// * @see com.github.bbva.logsReader.db.DBConnection#rollbak()
+	// */
+	// @Override
+	// public void rollbak() {
+	// try {
+	// Connection cnx= getLocalConnection();
+	// if(cnx != null && cnx.getTransactionIsolation() ==
+	// cnx.TRANSACTION_READ_UNCOMMITTED)
+	// cnx.commit();
+	// } catch (SQLException e) {
+	// throw new LogsReaderException(e, "Error making rollback.");
+	// }
+	// }
 
 	@Override
 	public <T> List<T> read(Class<T> clazz, String sql, LoadData<T> loader,
@@ -415,8 +437,10 @@ public class CRUD implements DBConnection {
 
 	private Connection getLocalConnection() throws SQLException {
 
-		Connection cnx = ds.getConnection();
-		cnx.setAutoCommit(dbAutoCommit);
-		return cnx;
+			return connection;
+
+		// Connection cnx = ds.getConnection();
+		// cnx.setAutoCommit(dbAutoCommit);
+		// return cnx;
 	}
 }

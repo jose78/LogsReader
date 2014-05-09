@@ -23,25 +23,29 @@ public class ResultDTO {
 		this.axisY = axisY;
 	}
 
-	public void setResult(List<TuplaDto> result) {
+	public ResultDTO  setResult(List<TuplaDto> result) {
 		this.result = result;
+		return this;
 	}
 
 	
 
 	@Override
 	public String toString() {
-		StringBuilder sb= new StringBuilder("[");
+		StringBuilder sb= new StringBuilder("{");
 		
-		sb.append(String.format("['%s', '%s'] , ", axisY, axisX));
+		sb.append("\"axis_X\" : \"").append(axisX).append("\", ");
+		sb.append("\"axis_Y\" : \"").append(axisY).append("\", ");
+		sb.append("\"listData\" : [");
+		
 		String comma= "";
 		for (TuplaDto tupla : result) {
 			
 			sb.append(comma).append("[").append(tupla).append("]");
-			comma= ",";
+			comma= ",\n    ";
 		}
 		
-		sb.append("]");
+		sb.append("]}");
 		return sb.toString();
 	}
 
