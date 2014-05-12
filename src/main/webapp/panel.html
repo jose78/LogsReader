@@ -21,6 +21,31 @@
 </head>
 <body onload="load()">
 
+
+
+
+	<form name="myForm">
+		<input type="radio" name="myRadios" onclick="handleClick(this)" checked="checked"
+			value="diario" /> Diario
+		<br>
+		<input type="radio" name="myRadios" onclick="handleClick(this)"
+			value="historico" /> Histórico
+	</form>
+
+	<script>
+		var currentValue = 0;
+		function handleClick(myRadio) {
+			/*  alert('Old value: ' + currentValue);
+			 alert('New value: ' + myRadio.value); */
+			currentValue = myRadio.value;
+			console.log(currentValue);
+			parameterFrecuenciaTiempo = currentValue;
+			callService();
+		}
+	</script>
+
+
+
 	Agrupación por:
 	<input type="text" value="1" id="agrupador" width="20px">
 
@@ -32,13 +57,15 @@
 			var parameterTO = null;
 			var parameterAggregate = null;
 			var parameterStandaDesviation = null;
-
-			function callService(parameterService, agrupador) {
+			var parameteragrupador = null;
+			var parameterFrecuenciaTiempo = null;
+			
+			function callService() {
 				console.log("callService");
 
 				var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
-						+ parameterService + "&ancho=" + agrupador
-						+ '&timeOut=' + parameterTO;
+						+ parameterService + "&ancho=" + parameteragrupador
+						+ '&timeOut=' + parameterTO+"&frecuenciaTiempo="+parameterFrecuenciaTiempo;
 
 				function handler() {
 
@@ -75,7 +102,9 @@
 					                                                 ]);
 					 */
 
-				
+					console.log("eje y : " + json.axisY);
+					console.log("eje x : " + json.axisX);
+
 					var data = google.visualization
 							.arrayToDataTable(json.listData);
 
@@ -84,10 +113,10 @@
 						width : 1000,
 						height : 600,
 						vAxis : {
-							title : json.axis_Y
+							title : json.axisY
 						},
 						hAxis : {
-							title : json.axis_X
+							title : json.axisX
 						},
 						seriesType : "bars",
 						series : {
@@ -183,7 +212,7 @@
 				console.log("Aggregate:" + parameterAggregate);
 				console.log("StandaDesviation:" + parameterStandaDesviation);
 
-				callService(parameterService, parameteragrupador);
+				callService();
 			}
 
 			function decode(name) {

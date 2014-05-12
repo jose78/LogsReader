@@ -86,14 +86,14 @@ public class ResultDTO {
 		sb.append("  \"axis_Y\" : \"").append(this.axisY).append("\" ,");
 		sb.append("  \"listData\" : [");
 
-		sb.append("["); 
-
-		String comma= "";
-		for (String head : heads) {
-			sb.append(comma).append("\"").append(head).append("\"");
-			comma= ", ";
-		}
-		sb.append("] \n");
+//		sb.append("["); 
+//
+//		String comma= "";
+//		for (String head : heads) {
+//			sb.append(comma).append("\"").append(head).append("\"");
+//			comma= ", ";
+//		}
+//		sb.append("] \n");
 		
 		for (int index_j = 0; index_j < listData.size(); index_j++) {
 			sb.append(" ,\n       [");

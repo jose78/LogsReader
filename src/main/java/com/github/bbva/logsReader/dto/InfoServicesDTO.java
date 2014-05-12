@@ -12,7 +12,7 @@ import com.github.bbva.logsReader.annt.DTO;
 @DTO
 public class InfoServicesDTO {
 
-	@Column(name = "label")
+	@Column(name = "nameService")
 	private String service;
 
 	@Column(name = "f_avg")

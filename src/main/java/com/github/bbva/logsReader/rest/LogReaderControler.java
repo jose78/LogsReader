@@ -1,6 +1,8 @@
 package com.github.bbva.logsReader.rest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,28 +65,38 @@ public class LogReaderControler {
 		return lst;
 	}
 
-	@RequestMapping(value = { "/ListServices" }, method = { RequestMethod.GET }, produces = "application/json")
+	@RequestMapping(value = { "/ListServices" }, 
+			params = {"frecuencia"}, 
+			method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody
-	List<InfoServicesDTO> getListServices() {
-		List<InfoServicesDTO> result = repository.getListService();
+	List<InfoServicesDTO> getListServices(@RequestParam(value = "frecuencia" , defaultValue="diario") String frecuencia) {
+		List<InfoServicesDTO> result = repository.getListService(25,frecuencia);
 		return result;
 	}
 
 	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, 
 			params = {"ancho", "serviceName"}, 
 			method = { RequestMethod.GET }, 
-			produces = "Text/plain")
+			produces = "application/json")
+//			produces = "Text/plain")
 	public @ResponseBody
-	 String getListaByGroupTimeElapsed(
+	ResultDTO getListaByGroupTimeElapsed(
 			@RequestParam(value = "ancho" , defaultValue="1") String ancho,
 			@RequestParam(value = "serviceName") String serviceName,
-			@RequestParam(value = "timeOut") String timeOut) {
+			@RequestParam(value = "timeOut") String timeOut,
+			@RequestParam(value = "frecuenciaTiempo") String frecuenciaTiempo
+			) {
 		List<List> result = repository.getListaByGroupTimeElapsed(ancho,
 				serviceName,timeOut);
 		
-		ResultDTO dtoREsult= new ResultDTO("Intervalos de milisegundos", "Nº de ejecucionies",result, "Agrupado por "+ancho,"Nº de ejecuciones" , "Time Out");
+	
+
+		String[] dataHead= {"Agrupado por "+ancho,"Nº de ejecuciones"};
+		result.add(0 ,  Arrays.asList(dataHead));
 		
-		return dtoREsult.toString();
+		ResultDTO dtoREsult= new ResultDTO("Intervalos de milisegundos", "Nº de ejecucionies",result);
+		
+		return dtoREsult;
 	}
 
 }

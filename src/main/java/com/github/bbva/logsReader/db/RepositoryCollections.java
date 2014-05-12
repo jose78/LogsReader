@@ -105,8 +105,9 @@ public class RepositoryCollections {
 						+ "SELECT  MAX (elapsed)  as maxi, "
 						+ "substring (''||elapsed from 1 for  %s)||repeat('0',char_length (''||elapsed)-1)|| '-'||  "
 						+ "substring (''||elapsed from 1 for  %s)||repeat('9',char_length (''||elapsed)-1)  as X  , "
-						+ "count(*) AS Y  , "
-						+ "25 as timeOut from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ?  group by X ORDER BY maxi ",
+						+ "count(*) AS Y "
+//						+ " , 25 as timeOut"
+						+ " from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ?  group by X ORDER BY maxi ",
 						ancho,ancho,timeOut);
 
 	
@@ -117,7 +118,7 @@ public class RepositoryCollections {
 				List<Object> lst = new ArrayList<Object>();
 				lst.add(rs.getObject("x"));
 				lst.add(rs.getObject("y"));
-				lst.add(rs.getObject("timeOut"));
+//				lst.add(rs.getObject("timeOut"));
 				return lst;
 			}
 		}, List.class, sql, serviceName);
@@ -125,42 +126,76 @@ public class RepositoryCollections {
 		return lst;
 	}
 
+//	/**
+//	 * Retrieve a list with the name of all services executed.
+//	 * 
+//	 * @return List with the name of services.
+//	 */
+//	public List<InfoServicesDTO> getListService(String... params) {
+//
+//		String paramWhere = "";
+//		if (params.length > 0)
+//			paramWhere = String.format("AND LABEL = '%s' ", params[0]);
+//
+//		StringBuilder sql = new StringBuilder();
+//		sql.append("  SELECT  sub.label, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
+//		sql.append("  ROUND(");
+//		sql.append("  100.0 * (");
+//		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
+//		sql.append("  ) /COUNT(*), 1) AS percent_total,");
+//		sql.append("  ROUND(");
+//		sql.append("    100.0 * (");
+//		sql.append("        SUM(CASE WHEN ( logs.elapsed <F_MIN) THEN 1 ELSE 0 END)");
+//		sql.append("    ) /COUNT(*), 1) AS percent_down,");
+//		sql.append("  ROUND(");
+//		sql.append("    100.0 * (");
+//		sql.append("        SUM(CASE WHEN ( logs.elapsed >F_MAX) THEN 1 ELSE 0 END)");
+//		sql.append("    ) /COUNT(*), 1) AS percent_up");
+//		sql.append("  FROM (");
+//		sql.append("  SELECT * , (main.F_AVG - main.standaDesviation ) AS I_MIN   ,  (main.F_AVG + main.standaDesviation ) AS I_MAX");
+//		sql.append("  FROM  (");
+//		sql.append("  SELECT LABEL , COUNT (*) AS TOTAL,");
+//		sql.append("  avg(elapsed) AS F_AVG , ");
+//		sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
+//		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS ");
+//		sql.append("  WHERE responsecode = '200' ");
+//		sql.append(paramWhere);
+//		sql.append("  GROUP by LABEL ) main ");
+//		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = '200' GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
+//
+//		log.info("SQL: " + sql.toString());
+//		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
+//				sql.toString());
+//		return result;
+//	}
+//}
+	
+	
 	/**
 	 * Retrieve a list with the name of all services executed.
 	 * 
 	 * @return List with the name of services.
 	 */
-	public List<InfoServicesDTO> getListService(String... params) {
+	public List<InfoServicesDTO> getListService(Integer timeOut, String frecuencia, String... params) {
 
 		String paramWhere = "";
 		if (params.length > 0)
 			paramWhere = String.format("AND LABEL = '%s' ", params[0]);
 
-		StringBuilder sql = new StringBuilder();
-		sql.append("  SELECT  sub.label, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
-		sql.append("  ROUND(");
-		sql.append("  100.0 * (");
-		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
-		sql.append("  ) /COUNT(*), 1) AS percent_total,");
-		sql.append("  ROUND(");
-		sql.append("    100.0 * (");
-		sql.append("        SUM(CASE WHEN ( logs.elapsed <F_MIN) THEN 1 ELSE 0 END)");
-		sql.append("    ) /COUNT(*), 1) AS percent_down,");
-		sql.append("  ROUND(");
-		sql.append("    100.0 * (");
-		sql.append("        SUM(CASE WHEN ( logs.elapsed >F_MAX) THEN 1 ELSE 0 END)");
-		sql.append("    ) /COUNT(*), 1) AS percent_up");
-		sql.append("  FROM (");
-		sql.append("  SELECT * , (main.F_AVG - main.standaDesviation ) AS I_MIN   ,  (main.F_AVG + main.standaDesviation ) AS I_MAX");
-		sql.append("  FROM  (");
-		sql.append("  SELECT LABEL , COUNT (*) AS TOTAL,");
-		sql.append("  avg(elapsed) AS F_AVG , ");
-		sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
-		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS ");
-		sql.append("  WHERE responsecode = '200' ");
-		sql.append(paramWhere);
-		sql.append("  GROUP by LABEL ) main ");
-		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = '200' GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
+		
+		String append = "";
+		if("diario".equals(frecuencia))
+			append= "WHERE current_date = timestamp::date";
+		
+		
+		String sql = String.format("SELECT "
+				+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed < %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_down ,"
+				+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed >= %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_up, "
+				+ " label AS nameService , "
+				+ " AVG (elapsed) AS f_avg"
+				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP "
+				+ " BY LABEL",timeOut,timeOut,append);
+
 
 		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
