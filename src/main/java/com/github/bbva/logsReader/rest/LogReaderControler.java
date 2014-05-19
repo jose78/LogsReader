@@ -1,8 +1,8 @@
 package com.github.bbva.logsReader.rest;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.db.RepositoryCollections;
+import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.ResultDTO;
-import com.github.bbva.logsReader.dto.TuplaDto;
+import com.github.bbva.logsReader.utils.Daemon;
 import com.github.bbva.logsReader.utils.FrecuencyGaussianDto;
 
 /**
@@ -39,6 +40,25 @@ public class LogReaderControler {
 	public String redirect() {
 		System.out.println("\n\n\nDATO\n\n\n");
 		return "index.html";
+	}
+	
+	@Autowired
+	private Daemon daemon;
+	
+
+	@RequestMapping(value = { "/Daemon" }, params = { "value"}, method = { RequestMethod.GET })
+	public void  setStartUpAndStopDaemon(@RequestParam(value = "value", defaultValue = "true") String flagStart) {
+		daemon.setStartUpDaemon(new Boolean(flagStart));
+	}
+	
+	@RequestMapping(value = { "/LoadFiles" }, params = { "directory" , "files"}, method = { RequestMethod.GET })
+	public void  loadFiles(@RequestParam(value = "directory", defaultValue = "true") String flagStart,
+			@RequestParam(value = "files") String files) {
+		List<File> lst= new ArrayList<File>();
+		
+		
+		
+		daemon.setStartUpDaemon(new Boolean(flagStart));
 	}
 
 	@RequestMapping(value = { "/StandardDeviation" }, method = { RequestMethod.GET }, produces = "text/plain")
@@ -65,37 +85,61 @@ public class LogReaderControler {
 		return lst;
 	}
 
-	@RequestMapping(value = { "/ListServices" }, 
-			params = {"frecuencia"}, 
-			method = { RequestMethod.GET }, produces = "application/json")
+	@RequestMapping(value = { "/ListServices" }, params = { "frecuencia","fecha","timeout" }, method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody
-	List<InfoServicesDTO> getListServices(@RequestParam(value = "frecuencia" , defaultValue="diario") String frecuencia) {
-		List<InfoServicesDTO> result = repository.getListService(25,frecuencia);
+	List<InfoServicesDTO> getListServices(
+			@RequestParam(value = "frecuencia", defaultValue = "diario") String frecuencia,
+			@RequestParam(value = "fecha") String fecha , 
+			@RequestParam(value = "timeout") String timeOut) {
+		List<InfoServicesDTO> result = repository.getListService(Integer.parseInt(timeOut),
+				frecuencia, fecha);
 		return result;
 	}
+	
+	
+	@RequestMapping(value = { "/ErrorNowGr" }, params = {
+			"ancho", "application" },method = { RequestMethod.GET }, produces = "application/json")
+	public @ResponseBody
+	ResultDTO<Object[][]> getErrorNowGr(
+			@RequestParam(value = "ancho", defaultValue = "5") String ancho,
+		    @RequestParam(value = "application") String application ) {
+		Object[][] resultDB = repository.getErrorNowGraphic(ancho,application);
+		
+		ResultDTO<Object[][]>  result= new ResultDTO<Object[][]>("Tiempos chequeados.","Nº de errores.",resultDB);
+		
+		return result;
+	}
+	
+	@RequestMapping(value = { "/ErrorNowTbl" }, params = {
+			"ancho", "minutos" },method = { RequestMethod.GET }, produces = "application/json")
+	public @ResponseBody
+	List<ErrorNowDTO> getErrorNowTbl(
+			@RequestParam(value = "ancho", defaultValue = "5") String ancho,
+		    @RequestParam(value = "minutos") String minutos ) {
+		List<ErrorNowDTO> resultDB = repository.getErrorNowTable(Integer.parseInt(ancho), Integer.parseInt(minutos));
 
-	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, 
-			params = {"ancho", "serviceName"}, 
-			method = { RequestMethod.GET }, 
-			produces = "application/json")
-//			produces = "Text/plain")
+		
+		return resultDB;
+	}
+
+	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, params = {
+			"ancho", "serviceName" }, method = { RequestMethod.GET }, produces = "application/json")
+	// produces = "Text/plain")
 	public @ResponseBody
 	ResultDTO getListaByGroupTimeElapsed(
-			@RequestParam(value = "ancho" , defaultValue="1") String ancho,
+			@RequestParam(value = "ancho", defaultValue = "1") String ancho,
 			@RequestParam(value = "serviceName") String serviceName,
 			@RequestParam(value = "timeOut") String timeOut,
-			@RequestParam(value = "frecuenciaTiempo") String frecuenciaTiempo
-			) {
+			@RequestParam(value = "frecuenciaTiempo") String frecuenciaTiempo) {
 		List<List> result = repository.getListaByGroupTimeElapsed(ancho,
-				serviceName,timeOut);
-		
-	
+				serviceName, timeOut);
 
-		String[] dataHead= {"Agrupado por "+ancho,"Nº de ejecuciones"};
-		result.add(0 ,  Arrays.asList(dataHead));
-		
-		ResultDTO dtoREsult= new ResultDTO("Intervalos de milisegundos", "Nº de ejecucionies",result);
-		
+		String[] dataHead = { "Agrupado por " + ancho, "Nº de ejecuciones" };
+		result.add(0, Arrays.asList(dataHead));
+
+		ResultDTO<List<List>> dtoREsult = new ResultDTO<List<List>>("Intervalos de milisegundos",
+				"Nº de ejecucionies", result);
+
 		return dtoREsult;
 	}
 

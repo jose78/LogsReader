@@ -10,8 +10,20 @@ import java.math.BigDecimal;
  * 
  */
 public enum TypeConverterEnum {
+	
+	
+	LONG_TO_INTEGER(new InternalCommand<Integer>() {
+		public Integer executeChange(Object value) {
+			return Integer.parseInt(value + "");
+		}
+	}),
 
 	LONG_TO_INT(new InternalCommand<Integer>() {
+		public Integer executeChange(Object value) {
+			return Integer.parseInt(value + "");
+		}
+	}),
+	INTEGER_TO_INTEGER(new InternalCommand<Integer>() {
 		public Integer executeChange(Object value) {
 			return Integer.parseInt(value + "");
 		}

@@ -4,19 +4,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.PriorityQueue;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import com.github.bbva.logsReader.db.DBConnection;
-import com.github.bbva.logsReader.entity.FileLoadedEntity;
+import com.github.bbva.logsReader.db.RepositoryCollections;
+import com.github.bbva.logsReader.dto.AppendFilesDto;
+import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
 import com.github.bbva.logsReader.entity.LogEntity;
 
 /**
@@ -29,127 +28,114 @@ public class FilesUtils {
 
 	private static Logger log = Logger.getLogger(FilesUtils.class);
 
-	@Value("${com.bbva-logReader.pathfiles.ten}")
-	private String pathFilesTenMinut;
+	@Value("${com.bbva-logReader.csv.heds}")
+	private String[] head;
 
-	@Value("${com.bbva-logReader.pathfiles.one}")
-	private String pathFilesOneMinut;
+	// @Value("${com.bbva-logReader.pathfiles.ten}")
+	// private String pathFilesTenMinut;
+	//
+	// @Value("${com.bbva-logReader.pathfiles.one}")
+	// private String pathFilesOneMinut;
+
+	private java.util.Queue<AppendFilesDto> queue = null;
 
 	@Autowired
+	private RepositoryCollections repository;
+	@Autowired
 	private DBConnection connection;
-
-	private Set<String> containerNameFilesLoaded;
 
 	/**
 	 * This method will be loaded automatcly when start the application-
 	 */
 	@SuppressWarnings("unused")
 	private void init() {
-		containerNameFilesLoaded = new TreeSet<String>();
-		containerNameFilesLoaded.addAll(connection.read(String.class,
-				"SELECT NAME FROM CONTAINER_LOGS_DATA.FILES_LOADED"));
-		log.info(String.format("Cargados inicialmente %s archivos",
-				containerNameFilesLoaded.size()));
+		queue = new PriorityQueue<AppendFilesDto>();
+		// containerNameFilesLoaded = new TreeSet<String>();
+		// containerNameFilesLoaded.addAll(connection.read(String.class,
+		// "SELECT NAME FROM CONTAINER_LOGS_DATA.FILES_LOADED"));
+		// log.info(String.format("Cargados inicialmente %s archivos",
+		// containerNameFilesLoaded.size()));
 	}
 
-	public synchronized void loaderFiles() {
-		loadFiles(pathFilesOneMinut, pathFilesTenMinut);
+	public void loadFiles(AppendFilesDto appendFilesDto) {
+
+		queue.add(appendFilesDto);
+
+		loadFilesFromQueue();
 
 	}
 
-	private void loadFiles(String... pathnames) {
+	private synchronized void loadFilesFromQueue() {
 
-		
-		String fileName =null;
-		
-		
-		/*
-		 * 0º read all files of each directory and validate us that then can be
-		 * loaded.
-		 */
-		for (String pathname : pathnames) {
+		while (!queue.isEmpty()) {
 
-			log.info(String.format("Scaning the directory %s", pathname));
-			File directory = new File(pathname);
-			File files[] = directory.listFiles();
-			for (File file : files) {
-				try {
-					if (file.isFile() 
-							&& !file.getName().contains("errors_xml")
-							&& !containerNameFilesLoaded.contains(file.getAbsolutePath())) {
-						fileName = file.getName();
-
-						/*
-						 * 1º save all new files loaded.
-						 */
-						connection.insert(new FileLoadedEntity(file
-								.getAbsolutePath()));
-
-						/*
-						 * 2º retrieve and save in db all logDto.
-						 */
-						List<LogEntity> list = openFile(file);
-						if (list == null || list.size() == 0)
-							continue;
-
-						List<LogEntity> lstError = new ArrayList<LogEntity>();
-						for (LogEntity logDTO : list) {
-							try {
-								connection.insert(logDTO);
-							} catch (Throwable e) {
-								lstError.add(logDTO);
-							}
-						}
-						/*
-						 * 3º save the file in the container of files readed
-						 */
-						containerNameFilesLoaded.add(fileName);
-
-						log.info(String
-								.format("Archivo %s cargado con %s registros ok y %s erroneos",
-										file.getName(), list.size(),
-										lstError.size()));
-					}
-
-				} catch (Exception e) {
-					log.error(" Clean Error from DB -> OK.", e);
-					e.printStackTrace();
-				}
+			/*
+			 * Rtrieve and remove the head of the queue
+			 */
+			AppendFilesDto appendFilesDto = queue.poll();
+			for (File file : appendFilesDto.getFiles()) {
+				load(file, appendFilesDto.getEnvironment());
 			}
-
 		}
 	}
 
-	private List<LogEntity> openFile(File file) throws IOException {
+	private void load(File file, String environment) {
 
+		String fileName = null;
+		FileEnvironmentEntity fileEnvironmentEntity = repository
+				.getFileEnvironmentEntity(file, environment);
+
+		Integer numberOfLine = 1;
+		Integer cont = 0;
+		Integer contError = 0;
 		BufferedReader br = null;
-		try {
-			List<LogEntity> containerData = new ArrayList<LogEntity>();
-			br = new BufferedReader(new FileReader(file));
-			/*
-			 * Retrieve the Head.
-			 */
-			String line = br.readLine();
-			String[] head = line.split(",");
 
-			/*
-			 * Map the data.
-			 */
+		try {
+			if (fileEnvironmentEntity != null)
+				numberOfLine = fileEnvironmentEntity.getNumberOfLine();
+
+			br = new BufferedReader(new FileReader(file));
+			String line = null;
 			while ((line = br.readLine()) != null) {
-				try {
-					String[] source = line.split(",");
-					containerData.add(loadData(head, source,file.getAbsolutePath()));
-				} catch (Exception e) {
-					log.error(String.format("Archivo %s mal formateado -> ERROR:[%s];   Line:[%s].",
-							file.getAbsolutePath(), e.getMessage() , line));
+
+				if (cont >= numberOfLine) {
+					try {
+						LogEntity logEntity = loadData(head, line.split(","),
+								file.getName(), environment);
+						connection.insert(logEntity);
+					} catch (Exception e) {
+						contError++;
+						log.error(String
+								.format("file:[%s] environment:[%s] Nº line:[%s] Error:[%s] ",
+										file.getName(), environment, cont,
+										line, e.getMessage()));
+					}
 				}
+				cont++;
+
 			}
-			return containerData;
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		} finally {
-			br.close();
+
+			if (fileEnvironmentEntity != null) {
+				fileEnvironmentEntity.setNumberOfLine(cont);
+				connection.update(fileEnvironmentEntity);
+			} else {
+				connection.insert(new FileEnvironmentEntity(null, file
+						.getName(), environment, cont));
+			}
+
+			log.info(String.format(
+					"In the file %s:Rows append %s OK and %s lines with ERROR",
+					file.getName(), ((cont - numberOfLine) - contError),
+					contError));
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -162,7 +148,8 @@ public class FilesUtils {
 	 *            array wth the value.
 	 * @return Object.
 	 */
-	private LogEntity loadData(String[] head, String[] source, String pathFile) {
+	private LogEntity loadData(String[] head, String[] source, String pathFile,
+			String environment) {
 		if (source.length != head.length)
 			throw new LogsReaderException("head:[%s] source:[%s]", head.length,
 					source.length);
@@ -170,7 +157,9 @@ public class FilesUtils {
 		for (int index = 0; index < source.length; index++) {
 			data.put(head[index], source[index]);
 		}
-		data.put("NAME_file", pathFile);
+		data.put("application", pathFile.contains("enpp2") ? "BUZZ"
+				: "NXT/WALLET");
+		data.put("environment", environment);
 		return new LogEntity(data);
 	}
 }

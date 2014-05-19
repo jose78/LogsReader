@@ -1,6 +1,3 @@
-
-
-
 sudo -u postgres psql postgres
 
 sudo -u postgres createuser root
@@ -21,6 +18,7 @@ CREATE SCHEMA CONTAINER_LOGS_DATA  AUTHORIZATION reader_logs;
 
 CREATE SEQUENCE id_BASIC_LOGS;
 CREATE SEQUENCE ID_FILE_LOADED;
+CREATE SEQUENCE id_FILE_ENVIRONMENT;
 
 
 -- Update index
@@ -28,9 +26,19 @@ ALTER SEQUENCE id_BASIC_LOGS RESTART WITH 1;
 ALTER SEQUENCE ID_FILE_LOADED RESTART WITH 1;
 
 -- CREATE TABLES
-CREATE TABLE CONTAINER_LOGS_DATA.FILES_LOADED (ID integer  PRIMARY KEY , NAME varchar(200) NOT NULL UNIQUE);
+(id, Latency, bytes, dataType, elapsed, failureMessage, label, responseCode, responseMessage, success, threadName, timeStamp, application, environment
+
+
 CREATE TABLE CONTAINER_LOGS_DATA.BASIC_LOGS (
-ID integer , timeStamp TIMESTAMP NOT NULL  , NAME_file varchar(200) not null, elapsed INTEGER ,	label VARCHAR(1000) NOT NULL,	responseCode VARCHAR(200) NOT NULL,	responseMessage VARCHAR(200) NOT NULL, 	threadName VARCHAR(1000) NOT NULL,	dataType VARCHAR(1000) NOT NULL,	success VARCHAR(1000) NOT NULL,	failureMessage VARCHAR(1000) NOT NULL,	bytes INTEGER NOT NULL, 	Latency INTEGER NOT NULL,primary key (timeStamp, NAME_file));
+ID integer , timeStamp TIMESTAMP NOT NULL  , elapsed INTEGER ,	label VARCHAR(1000) NOT NULL,	responseCode VARCHAR(200) NOT NULL,	responseMessage VARCHAR(200) NOT NULL, 	threadName VARCHAR(1000) NOT NULL,	dataType VARCHAR(1000) NOT NULL,	success VARCHAR(1000) NOT NULL,	failureMessage VARCHAR(1000) NOT NULL,	bytes INTEGER NOT NULL, 	Latency INTEGER NOT NULL , application VARCHAR(10) NOT NULL , ENVIRONMENT VARCHAR(5) NOT NULL , PRIMARY KEY(timestamp , ENVIRONMENT , application));
+
+
+CREATE TABLE CONTAINER_LOGS_DATA.FILE_ENVIRONMENT(
+ID integer NOT NULL UNIQUE , 
+nameFile VARCHAR(10) not null,
+environment VARCHAR(10) not null,
+numberOfLine integer not null,
+PRIMARY KEY(nameFile, environment));
 
 
 

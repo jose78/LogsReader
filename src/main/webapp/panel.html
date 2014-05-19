@@ -4,6 +4,12 @@
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <title>Google Visualization API Sample</title>
 <script type="text/javascript" src="//www.google.com/jsapi"></script>
+<link rel="stylesheet"
+	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<link rel="stylesheet" href="resources/css/style.css" />
+
 <script type="text/javascript">
 	google.load('visualization', '1', {
 		packages : [ 'corechart' ]
@@ -39,7 +45,7 @@
 			 alert('New value: ' + myRadio.value); */
 			currentValue = myRadio.value;
 			console.log(currentValue);
-			parameterFrecuenciaTiempo = currentValue;
+			
 			callService();
 		}
 	</script>
@@ -58,6 +64,7 @@
 			var parameterAggregate = null;
 			var parameterStandaDesviation = null;
 			var parameteragrupador = null;
+			var parameterDate = null;
 			var parameterFrecuenciaTiempo = null;
 			
 			function callService() {
@@ -203,14 +210,22 @@
 				parameterAggregate = GetUrlValue("aggregate");
 				parameterStandaDesviation = GetUrlValue("standaDesviation");
 				parameteragrupador = GetUrlValue("agrupador");
-
+				parameterDate= GetUrlValue("fecha");
+				parameterFrecuenciaTiempo= GetUrlValue("frecuenciaTiempo");
 				document.getElementById("agrupador").value = parameteragrupador;
-
+				
+				console.log("frecuenciaTiempo:" + parameterFrecuenciaTiempo);
+				console.log("date:" + parameterDate);
 				console.log("service:" + parameterService);
 				console.log("@grupador:" + parameteragrupador);
 				console.log("to:" + parameterTO);
 				console.log("Aggregate:" + parameterAggregate);
 				console.log("StandaDesviation:" + parameterStandaDesviation);
+				
+				
+				 var $radios = $('input:radio[name=myRadios]');
+				$radios.filter('[value='+parameterFrecuenciaTiempo+']').prop('checked', true);
+				    
 
 				callService();
 			}

@@ -28,7 +28,6 @@ import com.github.bbva.logsReader.annt.Entity;
 import com.github.bbva.logsReader.annt.Id;
 import com.github.bbva.logsReader.annt.Table;
 import com.github.bbva.logsReader.utils.ClassUtils;
-import com.github.bbva.logsReader.utils.LoadData;
 import com.github.bbva.logsReader.utils.LogsReaderException;
 
 /**
@@ -53,7 +52,7 @@ public class CRUD implements DBConnection {
 	private String dbPass;
 
 	private Connection connection;
-	
+
 	@Autowired
 	private ClassUtils classUtils;
 
@@ -76,15 +75,13 @@ public class CRUD implements DBConnection {
 			return;
 		}
 		try {
-			 connection = DriverManager.getConnection(dbUrl, dbUser,
-					dbPass);
+			connection = DriverManager.getConnection(dbUrl, dbUser, dbPass);
 			connection.setAutoCommit(dbAutoCommit);
-			
 
 		} catch (SQLException e) {
 			log.error("Connection Failed! Check output console");
 			e.printStackTrace();
-	
+
 		}
 	}
 
@@ -139,7 +136,6 @@ public class CRUD implements DBConnection {
 			for (int index = 0; index < countColumn; index++) {
 				columnNames[index] = rsMetaData.getColumnName(index + 1);
 			}
-			
 
 			while (rs.next()) {
 				T data = null;
@@ -162,7 +158,8 @@ public class CRUD implements DBConnection {
 		} finally {
 			try {
 				ps.close();
-				rs.close();
+				if (rs != null)
+					rs.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -420,10 +417,10 @@ public class CRUD implements DBConnection {
 			for (int index = 0; index < countColumn; index++) {
 				columnNames[index] = rsMetaData.getColumnName(index + 1);
 			}
-			
-			int count= 0;
+
+			int count = 0;
 			while (rs.next()) {
-				T data = loader.mapRow(rs , count++);
+				T data = loader.mapRow(rs, count++);
 				lst.add(data);
 			}
 			return lst;
@@ -442,7 +439,7 @@ public class CRUD implements DBConnection {
 
 	private Connection getLocalConnection() throws SQLException {
 
-			return connection;
+		return connection;
 
 		// Connection cnx = ds.getConnection();
 		// cnx.setAutoCommit(dbAutoCommit);
