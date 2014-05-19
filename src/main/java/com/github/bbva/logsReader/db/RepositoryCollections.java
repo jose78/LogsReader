@@ -200,10 +200,9 @@ public class RepositoryCollections {
 				.format("SELECT "
 						+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed < %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_down ,"
 						+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed >= %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_up, "
-						+ " label AS nameService , application "
+						+ " label AS nameService , application , "
 						+ " AVG (elapsed) AS f_avg"
-						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP "
-						+ " BY application , LABEL", timeOut, timeOut, append);
+						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP  BY application , LABEL ORDER BY LABEL", timeOut, timeOut, append);
 
 		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,

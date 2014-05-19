@@ -15,6 +15,10 @@ public class InfoServicesDTO {
 	@Column(name = "nameService")
 	private String service;
 
+	@Column(name = "application")
+	private String application;
+	
+
 	@Column(name = "f_avg")
 	private long aggregate;
 
@@ -33,7 +37,7 @@ public class InfoServicesDTO {
 	public InfoServicesDTO() {
 	}
 	public InfoServicesDTO(String service, int aggregate, int standaDesviation,
-			int ok, int failUp, int failDown) {
+			int ok, int failUp, int failDown ,String application) {
 		super();
 		this.service = service;
 		this.aggregate = aggregate;
@@ -41,6 +45,7 @@ public class InfoServicesDTO {
 		this.ok = ok;
 		this.failUp = failUp;
 		this.failDown = failDown;
+		this.application= application;
 	}
 
 	/**
@@ -50,6 +55,9 @@ public class InfoServicesDTO {
 		return service;
 	}
 
+	public String getApplication() {
+		return application;
+	}
 	/**
 	 * 
 	 * @return the aggregate
@@ -94,8 +102,8 @@ public class InfoServicesDTO {
 	@Override
 	public String toString() {
 		return String
-				.format("InfoServicesDTO [service=%s, aggregate=%s, standaDesviation=%s, ok=%s, failUp=%s, failDown=%s]",
-						service, aggregate, standaDesviation, ok, failUp,
+				.format("InfoServicesDTO [service=%s, application=%s , aggregate=%s, standaDesviation=%s, ok=%s, failUp=%s, failDown=%s]",
+						service, application, aggregate, standaDesviation, ok, failUp,
 						failDown);
 	}
 
