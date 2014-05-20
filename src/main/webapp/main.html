@@ -7,10 +7,9 @@
 
 <link rel="stylesheet" type="text/css"
 	href="./KUAJII MONITORING SITE_files/overlay.css">
-	
-	
-<link rel="stylesheet" type="text/css"
-	href="resources/css/style.css">
+
+
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
 
 <link rel="stylesheet"
 	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
@@ -64,10 +63,12 @@
 		for (var i = 0; i < json.length; i++) {
 			var data = json[i];
 
-			var row = document.getElementById("row_" + data.service+"_"+ data.application);
+			var row = document.getElementById("row_" + data.service + "_"
+					+ data.application);
 
 			if (row == null) {
-				row = addRow(table, data.service, data.application,data.aggregate);
+				row = addRow(table, data.service, data.application,
+						data.aggregate);
 			}
 			row.insertCell(0).innerHTML = data.service;
 			row.insertCell(1).innerHTML = data.application;
@@ -87,14 +88,14 @@
 		}
 	}
 
-	function showPanel(nameService, aggregate) {
-		console.log("showPanel:" + nameService + "   - " + aggregate);
+	function showPanel(nameService, application) {
+		console.log("showPanel:" + nameService + "   - " + application);
 
 		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
 		var fecha = document.getElementById('datepicker').value;
 		var agrupador = document.getElementById('agrupador').value;
-		window.open("panel.html?service=" + nameService + '&agrupador='
-				+ agrupador + '&aggregate=' + aggregate + '&to=25&fecha='
+		window.open("grafica.html?service=" + nameService + '&agrupador='
+				+ agrupador + '&application=' + application + '&to=25&fecha='
 				+ fecha + "&frecuenciaTiempo=" + frecuenciaTiempo, "MsgWindow"
 				+ nameService, "width=800, height=700");
 
@@ -117,18 +118,18 @@
 		var rowCount = rows.length;
 
 		var row = table.insertRow(rowCount);
-		row.height="30px";
-		row.id = "row_" + nameService+"_"+ application;
+		row.height = "30px";
+		row.id = "row_" + nameService + "_" + application;
 		row.onclick = function() {
 			console.log("Pulsado " + nameService);
-			showPanel(nameService, aggregate);
+			showPanel(nameService, application);
 		};
 
 		return row;
 	}
 </script>
 </head>
-<body xmlns="http://www.google.com/ns/jotspot" id="body">
+<body id="body">
 
 	<div id="sites-chrome-everything-scrollbar">
 		<div id="sites-chrome-everything">
@@ -136,82 +137,90 @@
 				<div id="sites-chrome-page-wrapper-inside">
 					<div id="sites-chrome-main-wrapper">
 						<div id="sites-chrome-main-wrapper-inside">
-							<table id="sites-chrome-main" class="sites-layout-hbox"
-								cellspacing="0" cellpadding="{scmCellpadding}" border="0">
+							<table id="sites-chrome-main" class="sites-layout-hbox">
 								<tbody>
 									<tr>
 										<td id="sites-chrome-sidebar-left"
 											class="sites-layout-sidebar-left" style="width: 200px">
-											<div xmlns="http://www.w3.org/1999/xhtml"
-												id="COMP_30107336677610874" class="sites-embed">
+											<div id="COMP_30107336677610874" class="sites-embed">
 												<div class="sites-embed-content sites-sidebar-nav">
-													<ul jotid="navList" class="has-expander">
+													<ul class="has-expander">
 
-														<li class="topLevel parent " wuid="gx:13de52886c491a63">
+														<li class="topLevel parent ">
 															<div dir="ltr" style="padding-left: 0px;">
 																<div class="expander"></div>
-																<a jotid="wuid:gx:13de52886c491a63"
-																	class="sites-navigation-link topLevel">Configuración</a>
+																<a class="sites-navigation-link topLevel">Configuración</a>
 															</div>
 															<ul class="has-expander">
+																<li class="">
+
+																	<table style="font-size: 14PX; padding-left: 38px;">
+																		<tr>
+																			<td><a onclick="executeService();"> test</a></td>
+																			<td></td>
+																		</tr>
+																		<tr>
+																			<td><a> Agrupado</a></td>
+																			<td><input  type="text"
+																				id="agrupador" value="0"
+																				onchange="executeService();"
+																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></td>
+																		</tr>
+																		<tr>
+																			<td><a> Time Out</a></td>
+																			<td><input type="text" id="timeout"
+																				value="0" onchange="executeService();"
+																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input>
+																		</tr>
+																		<tr>
+																			<td><a>Fecha</a></td>
+																			<td></td>
+																		</tr>
+																	</table>
+																</li>
 
 
 																<li class=""><div dir="ltr"
-																		style="padding-left: 38px;">
-																		<a onclick="executeService();"> test</a>
-																		<li class=""><div dir="ltr"
-																				style="padding-left: 38px;">
-																				<a> Agrupador <input align="top" type="text"
-																					id="agrupador" value="0"
-																					onchange="executeService();"
-																					style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></a>
-																		<li class=""><div dir="ltr"
-																				style="padding-left: 38px;">
-																				<a> Time Out <input align="top" type="text"
-																					id="timeout" value="0"
-																					onchange="executeService();"
-																					style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></a>
-																				<li class=""><div dir="ltr"
-																						style="padding-left: 38px;">
-																						<a> Fecha:</a> <input type="radio" name="myRadios"
-																							id="historico" checked="checked"
-																							value="historico" /> Histórico <br> <input
-																							type="radio" name="myRadios" id="diario"
-																							value="diario" /> Diario<input id="datepicker"
-																							name="datepicker" disabled="disabled" type="date"
-																							style="width: 150px;">
-																						<script type="text/javascript">
-																							var date = new Date();
+																		style="padding-left: 42px;">
+																		<input type="radio" name="myRadios" id="historico"
+																			checked="checked" value="historico" /> Histórico <br>
+																		<input type="radio" name="myRadios" id="diario"
+																			value="diario" /> Diario<input id="datepicker"
+																			name="datepicker" disabled="disabled" type="date"
+																			style="width: 150px;">
+																		<script type="text/javascript">
+																			var date = new Date();
 
-																							var day = date
-																									.getDate();
-																							var month = date
-																									.getMonth() + 1;
-																							var year = date
-																									.getFullYear();
+																			var day = date
+																					.getDate();
+																			var month = date
+																					.getMonth() + 1;
+																			var year = date
+																					.getFullYear();
 
-																							if (month < 10)
-																								month = "0"
-																										+ month;
-																							if (day < 10)
-																								day = "0"
-																										+ day;
+																			if (month < 10)
+																				month = "0"
+																						+ month;
+																			if (day < 10)
+																				day = "0"
+																						+ day;
 
-																							var today = year
-																									+ "-"
-																									+ month
-																									+ "-"
-																									+ day;
+																			var today = year
+																					+ "-"
+																					+ month
+																					+ "-"
+																					+ day;
 
-																							$(
-																									"#datepicker")
-																									.attr(
-																											"value",
-																											today);
-																						</script>
-																						</p>
+																			$(
+																					"#datepicker")
+																					.attr(
+																							"value",
+																							today);
+																		</script>
+																	</div>
 															</ul>
 														</li>
+													</ul>
 												</div>
 											</div>
 										</td>
@@ -220,33 +229,32 @@
 
 												<div id="sites-canvas-main" class="sites-canvas-main">
 													<div id="sites-canvas-main-content">
-														<table xmlns="http://www.w3.org/1999/xhtml"
-															cellspacing="0"
+														<table
 															class="sites-layout-name-one-column sites-layout-hbox">
 															<tbody>
 																<tr>
 																	<td class="sites-layout-tile sites-tile-name-content-1"
 																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
 
-																	
 
 
 
-																			
-																				<table class="gradienttable" id="tableServices">
-																					<thead>
-																						<tr align="center" height="40px">
-																							<th width="25%">Servicio</th>
-																							<th width="25%">Aplicación</th>
-																							<th width="15%">Tiempo medio</th>
-																							<th width="15%">% Por debajo del TimeOut</th>
-																							<th width="20%">% Por encima del TimeOut</th>
-																						</tr>
-																					</thead>
-																					<tbody>
-																					</tbody>
-																				</table>
-																			
+
+
+																		<table class="gradienttable" id="tableServices">
+																			<thead>
+																				<tr align="center" height="40px">
+																					<th width="25%">Servicio</th>
+																					<th width="25%">Aplicación</th>
+																					<th width="15%">Tiempo medio</th>
+																					<th width="15%">% Por debajo del TimeOut</th>
+																					<th width="20%">% Por encima del TimeOut</th>
+																				</tr>
+																			</thead>
+																			<tbody>
+																			</tbody>
+																		</table>
+
 
 																	</td>
 																</tr>

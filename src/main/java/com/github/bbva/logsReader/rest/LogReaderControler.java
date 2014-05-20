@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.db.RepositoryCollections;
+import com.github.bbva.logsReader.dto.DonutDTO;
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.ResultDTO;
@@ -97,6 +98,15 @@ public class LogReaderControler {
 	}
 	
 	
+//	@RequestMapping(value = { "/ListServicesDonut" }, params = { "service","application" }, method = { RequestMethod.GET }, produces = "application/json")
+//	public @ResponseBody
+//	List<DonutDTO> getListServicesDonut(
+//			@RequestParam(value = "service") String service,
+//			@RequestParam(value = "application") String application ) {
+//		List<DonutDTO> result = repository.getDonutServiceApplication(application, service);
+//		return result;
+//	}
+	
 	@RequestMapping(value = { "/ErrorNowGr" }, params = {
 			"ancho", "application" },method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody
@@ -123,16 +133,16 @@ public class LogReaderControler {
 	}
 
 	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, params = {
-			"ancho", "serviceName" }, method = { RequestMethod.GET }, produces = "application/json")
+			"ancho", "serviceName","application", "timeOut" }, method = { RequestMethod.GET }, produces = "application/json")
 	// produces = "Text/plain")
 	public @ResponseBody
 	ResultDTO getListaByGroupTimeElapsed(
 			@RequestParam(value = "ancho", defaultValue = "1") String ancho,
 			@RequestParam(value = "serviceName") String serviceName,
 			@RequestParam(value = "timeOut") String timeOut,
-			@RequestParam(value = "frecuenciaTiempo") String frecuenciaTiempo) {
+			@RequestParam(value = "application") String application) {
 		List<List> result = repository.getListaByGroupTimeElapsed(ancho,
-				serviceName, timeOut);
+				serviceName,timeOut, application );
 
 		String[] dataHead = { "Agrupado por " + ancho, "Nº de ejecuciones" };
 		result.add(0, Arrays.asList(dataHead));
@@ -140,6 +150,7 @@ public class LogReaderControler {
 		ResultDTO<List<List>> dtoREsult = new ResultDTO<List<List>>("Intervalos de milisegundos",
 				"Nº de ejecucionies", result);
 
+		dtoREsult.setListDataDonut(repository.getDonutServiceApplication(application, serviceName));
 		return dtoREsult;
 	}
 

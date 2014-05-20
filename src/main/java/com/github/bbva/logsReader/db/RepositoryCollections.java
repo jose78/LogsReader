@@ -6,8 +6,11 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -18,9 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.github.bbva.logsReader.dto.DonutDTO;
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.ResultDTO;
+import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
 import com.github.bbva.logsReader.utils.LoadData;
 import com.github.bbva.logsReader.utils.LogsReaderException;
@@ -100,14 +105,47 @@ public class RepositoryCollections {
 		return result.get(0);
 	}
 
+	public java.lang.Object[][] getDonutServiceApplication(String application, String service) {
+	
+		Object[] params= {application , service};
+		String sql = "SELECT COUNT(*) AS NUMBER , RESPONSECODE FROM CONTAINER_LOGS_DATA.BASIC_LOGS  WHERE APPLICATION = ? AND lABEL = ?  GROUP  BY  RESPONSECODE ORDER BY RESPONSECODE ";
+		RowMapper<Object[][]> row= new RowMapper<Object[][]>() {
+			
+			@Override
+			public Object[][] mapRow(ResultSet rs, int arg1) throws SQLException {
+				List<TuplaDto> result= new ArrayList<TuplaDto>();
+				do{
+					TuplaDto tupla = new TuplaDto(rs.getString(2), rs.getInt(1));
+					result.add(tupla);					
+				}while (rs.next()) ;
+				
+				Object[][] matrix= new Object[result.size()+1][2];
+				int row= 1;
+				for (TuplaDto tuplaDto : result) {
+					matrix[row][0] = tuplaDto.getY();
+					matrix[row][1] = tuplaDto.getX();
+					row++;
+					
+				}
+				matrix[0][0]= "Http Status";
+				matrix[0][1]= "Nº de veces que se han producido.";
+				return matrix;
+			}
+		};
+		
+		Object[][] result = connection.read(row , Object[][].class, sql, params).get(0);
+		return result; 
+	}
+
 	/**
 	 * Retrieve the list of calleds gruped by
 	 * 
 	 * @param serviceName
+	 * @param application 
 	 * @return
 	 */
 	public List<List> getListaByGroupTimeElapsed(String ancho,
-			String serviceName, String timeOut) {
+			String serviceName, String timeOut, String application) {
 
 		String sql = String
 				.format(""
@@ -117,7 +155,7 @@ public class RepositoryCollections {
 						+ " ELSE ''||elapsed END )as X , "
 						+ "count(*) AS Y "
 						// + " , 25 as timeOut"
-						+ " from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ?  group by X ORDER BY maxi ",
+						+ " from CONTAINER_LOGS_DATA.BASIC_LOGS WHERE label = ?  AND application = ? group by X ORDER BY maxi ",
 						ancho, ancho, ancho, ancho, ancho, timeOut);
 
 		List<List> lst = connection.read(new RowMapper<List>() {
@@ -130,7 +168,7 @@ public class RepositoryCollections {
 				// lst.add(rs.getObject("timeOut"));
 				return lst;
 			}
-		}, List.class, sql, serviceName);
+		}, List.class, sql, serviceName , application);
 
 		return lst;
 	}
@@ -202,7 +240,8 @@ public class RepositoryCollections {
 						+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed >= %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_up, "
 						+ " label AS nameService , application , "
 						+ " AVG (elapsed) AS f_avg"
-						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP  BY application , LABEL ORDER BY LABEL", timeOut, timeOut, append);
+						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP  BY application , LABEL ORDER BY LABEL",
+						timeOut, timeOut, append);
 
 		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,

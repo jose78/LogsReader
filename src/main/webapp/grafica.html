@@ -7,128 +7,42 @@
 
 <link rel="stylesheet" type="text/css"
 	href="./KUAJII MONITORING SITE_files/overlay.css">
-	
-	
-<link rel="stylesheet" type="text/css"
-	href="resources/css/style.css">
 
+
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Google Visualization API Sample</title>
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
 <link rel="stylesheet"
 	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
 <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
 <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
-<script src="resources/js/main_local.js"></script>
-
+<link rel="stylesheet" href="resources/css/style.css" />
 
 <script type="text/javascript">
-	function executeService() {
-		console.log("starting executeSErvice");
-
-		var fecha = document.getElementById('datepicker').value;
-		var frecuenciaTiempo = $('input[name=myRadios]:checked').val();
-		var timeout = document.getElementById('timeout').value;
-		console.log("frecuenciaTiempo: " + frecuenciaTiempo + " fecha:" + fecha
-				+ " timeOut:" + timeout);
-
-		if (frecuenciaTiempo == null) {
-			frecuenciaTiempo = "historico";
-		}
-
-		console.log("Fehca:" + fecha);
-
-		var url = "/ListServices?frecuencia=" + frecuenciaTiempo + "&fecha="
-				+ fecha + "&timeout=" + timeout;
-
-		console.log("URL: " + url);
-		callService(url, function(result) {
-			clean('tableServices');
-			printResult(result);
-		});
-	}
-
-	$("document").ready(function() {
-		$("#historico").click(function() {
-			$('#datepicker').prop('disabled', true);
-			$('#datepicker').value = "";
-		});
+	google.load('visualization', '1', {
+		packages : [ 'corechart' ]
 	});
-	$("document").ready(function() {
-		$("#diario").click(function() {
-			$('#datepicker').prop('disabled', false);
-		});
-	});
-
-	function printResult(dataJSON) {
-		var table = document.getElementById('tableServices');
-		var json = JSON.parse(dataJSON);
-
-		for (var i = 0; i < json.length; i++) {
-			var data = json[i];
-
-			var row = document.getElementById("row_" + data.service+"_"+ data.application);
-
-			if (row == null) {
-				row = addRow(table, data.service, data.application,data.aggregate);
-			}
-			row.insertCell(0).innerHTML = data.service;
-			row.insertCell(1).innerHTML = data.application;
-			row.insertCell(2).innerHTML = data.aggregate + " ms";
-			/* 	row.insertCell(2).innerHTML = data.standaDesviation;
-				row.insertCell(3).innerHTML = data.ok + " %"; */
-			row.insertCell(3).innerHTML = data.failDown + " %";
-			row.insertCell(4).innerHTML = data.failUp + " %";
-
-			if (i % 2)
-				row.className = 'alt';
-
-			row.cells[2].align = "center";
-			row.cells[3].align = "center";
-			row.cells[4].align = "center";
-
-		}
-	}
-
-	function showPanel(nameService, aggregate) {
-		console.log("showPanel:" + nameService + "   - " + aggregate);
-
-		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
-		var fecha = document.getElementById('datepicker').value;
-		var agrupador = document.getElementById('agrupador').value;
-		window.open("panel.html?service=" + nameService + '&agrupador='
-				+ agrupador + '&aggregate=' + aggregate + '&to=25&fecha='
-				+ fecha + "&frecuenciaTiempo=" + frecuenciaTiempo, "MsgWindow"
-				+ nameService, "width=800, height=700");
-
-	}
-	/*
-	 * .datagrid table thead th {
-	 background: #1c5ba2;
-	 background: -moz-linear-gradient(center top, #006699 5%, #1c5ba2 100%);
-	 filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#1c5ba2');
-	 background-color: #006699;
-	 color: #FFFFFF;
-	 font-size: 15px;
-	 font-weight: bold;
-	 border-left: 1px solid #0070A8;
-	 }
-	 */
-	function addRow(table, nameService, application, aggregate) {
-
-		var rows = table.rows;
-		var rowCount = rows.length;
-
-		var row = table.insertRow(rowCount);
-		row.height="30px";
-		row.id = "row_" + nameService+"_"+ application;
-		row.onclick = function() {
-			console.log("Pulsado " + nameService);
-			showPanel(nameService, aggregate);
-		};
-
-		return row;
-	}
 </script>
+<script type="text/javascript">
+
+  google.load("visualization", "1", {packages:["corechart"]});
+
+  function drawDonut(dataDonut) {
+    var data = google.visualization.arrayToDataTable(dataDonut);
+
+    var options = {
+      title: 'Donut con los status HTTP.',
+      pieHole: 0.4,
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+    chart.draw(data, options);
+  }
+</script>
+
 </head>
-<body xmlns="http://www.google.com/ns/jotspot" id="body">
+<body id="body" onload="load();">
 
 	<div id="sites-chrome-everything-scrollbar">
 		<div id="sites-chrome-everything">
@@ -136,125 +50,360 @@
 				<div id="sites-chrome-page-wrapper-inside">
 					<div id="sites-chrome-main-wrapper">
 						<div id="sites-chrome-main-wrapper-inside">
-							<table id="sites-chrome-main" class="sites-layout-hbox"
-								cellspacing="0" cellpadding="{scmCellpadding}" border="0">
+							<table id="sites-chrome-main" class="sites-layout-hbox">
 								<tbody>
 									<tr>
 										<td id="sites-chrome-sidebar-left"
 											class="sites-layout-sidebar-left" style="width: 200px">
-											<div xmlns="http://www.w3.org/1999/xhtml"
-												id="COMP_30107336677610874" class="sites-embed">
+											<div id="COMP_30107336677610874" class="sites-embed">
 												<div class="sites-embed-content sites-sidebar-nav">
-													<ul jotid="navList" class="has-expander">
+													<ul class="has-expander">
 
-														<li class="topLevel parent " wuid="gx:13de52886c491a63">
+														<li class="topLevel parent ">
 															<div dir="ltr" style="padding-left: 0px;">
 																<div class="expander"></div>
-																<a jotid="wuid:gx:13de52886c491a63"
-																	class="sites-navigation-link topLevel">Configuración</a>
+																<a class="sites-navigation-link topLevel">Configuración</a>
 															</div>
 															<ul class="has-expander">
+																<li class="">
 
-
-																<li class=""><div dir="ltr"
-																		style="padding-left: 38px;">
-																		<a onclick="executeService();"> test</a>
-																		<li class=""><div dir="ltr"
-																				style="padding-left: 38px;">
-																				<a> Agrupador <input align="top" type="text"
-																					id="agrupador" value="0"
-																					onchange="executeService();"
-																					style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></a>
-																		<li class=""><div dir="ltr"
-																				style="padding-left: 38px;">
-																				<a> Time Out <input align="top" type="text"
-																					id="timeout" value="0"
-																					onchange="executeService();"
-																					style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></a>
-																				<li class=""><div dir="ltr"
-																						style="padding-left: 38px;">
-																						<a> Fecha:</a> <input type="radio" name="myRadios"
-																							id="historico" checked="checked"
-																							value="historico" /> Histórico <br> <input
-																							type="radio" name="myRadios" id="diario"
-																							value="diario" /> Diario<input id="datepicker"
-																							name="datepicker" disabled="disabled" type="date"
-																							style="width: 150px;">
-																						<script type="text/javascript">
-																							var date = new Date();
-
-																							var day = date
-																									.getDate();
-																							var month = date
-																									.getMonth() + 1;
-																							var year = date
-																									.getFullYear();
-
-																							if (month < 10)
-																								month = "0"
-																										+ month;
-																							if (day < 10)
-																								day = "0"
-																										+ day;
-
-																							var today = year
-																									+ "-"
-																									+ month
-																									+ "-"
-																									+ day;
-
-																							$(
-																									"#datepicker")
-																									.attr(
-																											"value",
-																											today);
-																						</script>
-																						</p>
+																	<table style="font-size: 14PX; padding-left: 38px;">
+																		<tr>
+																			<td><a onclick="callService();"> test</a></td>
+																			<td></td>
+																		</tr>
+																		<tr>
+																			<td><a> Agrupado</a></td>
+																			<td><input type="text" id="agrupador" onchange="callService();" value="0"	style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></td>
+																		</tr>
+																	</table>
+																</li>
+															
 															</ul>
 														</li>
+													</ul>
 												</div>
 											</div>
 										</td>
 										<td id="sites-canvas-wrapper">
-											<div id="sites-canvas">
-
-												<div id="sites-canvas-main" class="sites-canvas-main">
-													<div id="sites-canvas-main-content">
-														<table xmlns="http://www.w3.org/1999/xhtml"
-															cellspacing="0"
-															class="sites-layout-name-one-column sites-layout-hbox">
-															<tbody>
-																<tr>
-																	<td class="sites-layout-tile sites-tile-name-content-1"
-																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
-
-																	
 
 
+											<div id="sites-canvas-main-content">
 
-																			
-																				<table class="gradienttable" id="tableServices">
-																					<thead>
-																						<tr align="center" height="40px">
-																							<th width="25%">Servicio</th>
-																							<th width="25%">Aplicación</th>
-																							<th width="15%">Tiempo medio</th>
-																							<th width="15%">% Por debajo del TimeOut</th>
-																							<th width="20%">% Por encima del TimeOut</th>
-																						</tr>
-																					</thead>
-																					<tbody>
-																					</tbody>
-																				</table>
-																			
 
-																	</td>
-																</tr>
-															</tbody>
-														</table>
-													</div>
-												</div>
+												<script>
+													var parameterService = null;
+													var parameterTO = null;
+													var parameterAggregate = null;
+													var parameterStandaDesviation = null;
+													var parameteragrupador = null;
+													var parameterDate = null;
+													var parameterFrecuenciaTiempo = null;
+													var parameterapplication  = null;
 
+													function callService() {
+														console
+																.log("callService");
+														
+														
+
+														var agrupador = document.getElementById('agrupador').value;
+														
+														var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
+																+ parameterService
+																+ "&ancho="
+																+ agrupador
+																+ '&timeOut='
+																+ parameterTO
+																+ "&frecuenciaTiempo="
+																+ parameterFrecuenciaTiempo
+																+ "&application="+parameterapplication;
+
+														function handler() {
+
+															if (client.readyState == 4
+																	&& client.status == 200) {
+																console
+																		.log("Handler start");
+																console
+																		.log(client.responseText);
+																printData(client.responseText);
+																console
+																		.log("Handler FIN");
+															}
+														}
+
+														var client = new XMLHttpRequest();
+														client.onreadystatechange = handler;
+														client.open("GET", url);
+														client.send();
+
+													}
+													
+
+													function printData(dataJson) {
+
+														var json = JSON
+																.parse(dataJson);
+														console.log(json);
+														if(json.listDataDonut.length > 0)
+															drawDonut(json.listDataDonut);
+														try {
+
+															var title = "Gráfica que recoge el Nº de llamadas por intervalo de milisegundos";
+
+															/*  var data = google.visualization.arrayToDataTable([
+															                                                   ['Month', 'Bolivia', 'Ecuador', 'Madagascar', 'Papua New Guinea', 'Rwanda', 'Average'],
+															                                                   ['2004/05',  165,      938,         522,             998,           450,      614.6],
+															                                                   ['2005/06',  135,      1120,        599,             1268,          288,      614.6],
+															                                                   ['2006/07',  157,      1167,        587,             807,           397,      614.6],
+															                                                   ['2007/08',  139,      1110,        615,             968,           215,      614.6],
+															                                                   ['2008/09',  136,      691,         629,             1026,          366,      614.6]
+															                                                 ]);
+															 */
+
+															console
+																	.log("eje y : "
+																			+ json.axisY);
+															console
+																	.log("eje x : "
+																			+ json.axisX);
+
+															var data = google.visualization
+																	.arrayToDataTable(json.listData);
+
+															var options = {
+																title : title,
+																width : 1000,
+																height : 600,
+																vAxis : {
+																	title : json.axisY
+																},
+																hAxis : {
+																	title : json.axisX
+																},
+																seriesType : "bars",
+																series : {
+																	1 : {
+																		type : "line"
+																	}
+																}
+															};
+
+															
+															var chart = new google.visualization.ComboChart(
+																	document
+																			.getElementById('visualization'));
+															// The select handler. Call the chart's getSelection() method
+															function selectHandler() {
+																var selectedItem = chart
+																		.getSelection()[0];
+																console
+																		.log("selectedItem"
+																				+ selectedItem);
+																if (selectedItem) {
+																	var value = data
+																			.getValue(
+																					selectedItem.row,
+																					selectedItem.column);
+																	alert('The user selected '
+																			+ value);
+																	console
+																			.log("row:"
+																					+ selectedItem.row
+																					+ " -> "
+																					+ json.listData[selectedItem.row + 1][0]);
+																	console
+																			.log("column:"
+																					+ selectedItem.column);
+																}
+															}
+
+															// Listen for the 'select' event, and call my function selectHandler() when
+															// the user selects something on the chart.
+															google.visualization.events
+																	.addListener(
+																			chart,
+																			'select',
+																			selectHandler);
+
+															chart.draw(data,
+																	options);
+
+															console
+																	.log('Data create OK');
+
+														} catch (err) {
+															console
+																	.log('ERROR: '
+																			+ err);
+														}
+
+														console
+																.log("printData FIN");
+
+													}
+
+													function drawVisualization() {
+														// Some raw data (not necessarily accurate)
+														var data = google.visualization
+																.arrayToDataTable([
+																		[
+																				'Month',
+																				'Bolivia',
+																				'Ecuador',
+																				'Madagascar',
+																				'Papua New Guinea',
+																				'Rwanda',
+																				'Average' ],
+																		[
+																				'2004/05',
+																				165,
+																				938,
+																				522,
+																				998,
+																				450,
+																				614.6 ],
+																		[
+																				'2005/06',
+																				135,
+																				1120,
+																				599,
+																				1268,
+																				288,
+																				682 ],
+																		[
+																				'2006/07',
+																				157,
+																				1167,
+																				587,
+																				807,
+																				397,
+																				623 ],
+																		[
+																				'2007/08',
+																				139,
+																				1110,
+																				615,
+																				968,
+																				215,
+																				609.4 ],
+																		[
+																				'2008/09',
+																				136,
+																				691,
+																				629,
+																				1026,
+																				366,
+																				569.6 ] ]);
+
+														var options = {
+															title : 'Monthly Coffee Production by Country',
+															vAxis : {
+																title : "Cups"
+															},
+															hAxis : {
+																title : "Month"
+															},
+															seriesType : "bars",
+															series : {
+																5 : {
+																	type : "line"
+																}
+															}
+														};
+
+														var chart = new google.visualization.ComboChart(
+																document
+																		.getElementById('chart_div'));
+														chart.draw(data,
+																options);
+													}
+													google
+															.setOnLoadCallback(drawVisualization);
+
+													function load() {
+
+														console.log("log");
+
+														parameterService = GetUrlValue("service");
+														parameterTO = GetUrlValue("to");
+														
+														parameterStandaDesviation = GetUrlValue("standaDesviation");
+														parameteragrupador = GetUrlValue("agrupador");
+														parameterapplication =  GetUrlValue("application");
+														parameterDate = GetUrlValue("fecha");
+														parameterFrecuenciaTiempo = GetUrlValue("frecuenciaTiempo");
+														document
+																.getElementById("agrupador").value = parameteragrupador;
+
+														console
+																.log("frecuenciaTiempo:"
+																		+ parameterFrecuenciaTiempo);
+														console
+																.log("date:"
+																		+ parameterDate);
+														console
+																.log("service:"
+																		+ parameterService);
+														console
+														.log("application:"
+																+ parameterapplication);
+														console
+																.log("@grupador:"
+																		+ parameteragrupador);
+														console.log("to:"
+																+ parameterTO);
+														
+														console
+																.log("StandaDesviation:"
+																		+ parameterStandaDesviation);
+
+														var $radios = $('input:radio[name=myRadios]');
+														$radios
+																.filter(
+																		'[value='
+																				+ parameterFrecuenciaTiempo
+																				+ ']')
+																.prop(
+																		'checked',
+																		true);
+
+														callService();
+													}
+
+													function decode(name) {
+														var find = '%20';
+														var re = new RegExp(
+																find, 'g');
+														return name.replace(re,
+																' ');
+													}
+
+													function GetUrlValue(
+															VarSearch) {
+														var SearchString = window.location.search
+																.substring(1);
+														var VariableArray = SearchString
+																.split('&');
+														for (var i = 0; i < VariableArray.length; i++) {
+															var KeyValuePair = VariableArray[i]
+																	.split('=');
+															if (KeyValuePair[0] == VarSearch) {
+
+																return decode(KeyValuePair[1]);
+															}
+														}
+													}
+												</script>
+												
+												
+												<table>
+												<tr><td> <p id="info"> </p> </td></tr>
+												<tr><td id="visualization"> </td></tr>
+												<tr><td id="donutchart"style="width: 500px; height: 400px;" > </td></tr>
+												</table>
+												
 											</div>
 										</td>
 									</tr>
@@ -264,10 +413,12 @@
 					</div>
 
 				</div>
-			</div>
 
+			</div>
 		</div>
+
 	</div>
+
 
 
 </body>
