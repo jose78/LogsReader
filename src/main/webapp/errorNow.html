@@ -1,0 +1,194 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css"
+	href="./KUAJII MONITORING SITE_files/standard-css-default-ltr-ltr.css">
+
+<link rel="stylesheet" type="text/css"
+	href="./KUAJII MONITORING SITE_files/overlay.css">
+
+
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+
+<link rel="stylesheet"
+	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<script src="resources/js/main_local.js"></script>
+
+
+<script type="text/javascript">
+	function executeGettingErrorNow() {
+		console.log("starting executeSErvice");
+
+		var ancho = document.getElementById('errorNowAncho').value;
+		var minutos = document.getElementById('errorNowMinutos').value;
+
+		var url = "/ErrorNowTbl?ancho=" + ancho + "&minutos=" + minutos;
+
+		console.log("URL: " + url);
+		callService(url, function(result) {
+			clean('idTableErrorNow');
+			printResultErrorNow(result);
+		});
+	}
+
+	function printResultErrorNow(dataJSON) {
+
+		var table = document.getElementById('idTableErrorNow');
+		console.log("ID TABLE tableErrorNow" + table);
+		var json = JSON.parse(dataJSON);
+		console.log("JSON " + json);
+
+		for (var i = 0; i < json.length; i++) {
+			var data = json[i];
+
+			var row = document.getElementById("row_error_now_" + data.service
+					+ "_" + data.application);
+
+			if (row == null) {
+				row = addRow(table, data.service, data.aggregate);
+			}
+
+			row.insertCell(0).innerHTML = data.application;
+			row.insertCell(1).innerHTML = data.label;
+			row.insertCell(2).innerHTML = data.numberOfError;
+
+			row.cells[0].align = "center";
+			row.cells[1].align = "center";
+			row.cells[2].align = "center";
+
+		}
+	}
+
+	function showPanel(nameService, aggregate) {
+		console.log("showPanel:" + nameService + "   - " + aggregate);
+
+		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
+		var fecha = document.getElementById('datepicker').value;
+		var agrupador = document.getElementById('agrupador').value;
+		window.open("panel.html?service=" + nameService + '&agrupador='
+				+ agrupador + '&aggregate=' + aggregate + '&to=25&fecha='
+				+ fecha + "&frecuenciaTiempo=" + frecuenciaTiempo, "MsgWindow"
+				+ nameService, "width=800, height=700");
+
+	}
+
+	function addRow(table, nameService, aggregate) {
+
+		var rows = table.rows;
+		var rowCount = rows.length;
+
+		var row = table.insertRow(rowCount);
+		row.id = "row_error_now_" + nameService;
+		row.onclick = function() {
+			console.log("Pulsado " + nameService);
+			showPanel(nameService, aggregate);
+		};
+
+		return row;
+	}
+</script>
+</head>
+<body id="body">
+
+	<div id="sites-chrome-everything-scrollbar">
+		<div id="sites-chrome-everything">
+			<div id="sites-chrome-page-wrapper" style="direction: ltr">
+				<div id="sites-chrome-page-wrapper-inside">
+					<div id="sites-chrome-main-wrapper">
+						<div id="sites-chrome-main-wrapper-inside">
+							<table id="sites-chrome-main" class="sites-layout-hbox">
+								<tbody>
+									<tr>
+										<td id="sites-chrome-sidebar-left"
+											class="sites-layout-sidebar-left" style="width: 250px">
+											<div id="COMP_30107336677610874" class="sites-embed">
+												<div class="sites-embed-content sites-sidebar-nav">
+													<ul class="has-expander">
+
+														<li class="topLevel parent ">
+															<div dir="ltr" style="padding-left: 0px;">
+																<div class="expander"></div>
+																<a class="sites-navigation-link topLevel">Configuración</a>
+															</div>
+															<ul class="has-expander">
+																<li class="">
+
+																	<table style="font-size: 14PX; padding-left: 38px;">
+																		<tr>
+																			<td><a onclick="executeGettingErrorNow();">
+																					test</a></td>
+																			<td></td>
+																		</tr>
+
+																		<tr>
+																			<td><a>Tamaño de muestra</a></td>
+																			<td><input type="text" id="errorNowAncho"
+																				value="5" style="width: 30px">
+																				</td>
+																		</tr>
+																		<tr>
+																			<td><a>Minutos a escrutar</a></td>
+																			<td><input type="text" id="errorNowMinutos"
+																				value="5" style="width: 70px;vertical-align: middle;">
+																				</td>
+																		</tr>
+
+																	</table>
+																</li>
+															</ul>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</td>
+										<td id="sites-canvas-wrapper">
+											<div id="sites-canvas">
+
+												<div id="sites-canvas-main" class="sites-canvas-main">
+													<div id="sites-canvas-main-content">
+														<table
+															class="sites-layout-name-one-column sites-layout-hbox">
+															<tbody>
+																<tr>
+																	<td class="sites-layout-tile sites-tile-name-content-1"
+																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
+																		<table class="gradienttable" id="idTableErrorNow">
+																			<thead>
+																				<tr align="center" height="40px">
+																					<th width="30%">Aplicación</th>
+																					<th width="20%">Servicio</th>
+																					<th width="25%">Nº de errores</th>
+																				</tr>
+																			</thead>
+																			<tbody>
+																			</tbody>
+																		</table>
+
+
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+												</div>
+
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+
+</body>
+</html>
