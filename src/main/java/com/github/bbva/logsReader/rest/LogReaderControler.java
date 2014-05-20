@@ -131,6 +131,9 @@ public class LogReaderControler {
 		
 		return resultDB;
 	}
+	
+	
+	
 
 	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorTiempo" }, params = {
 			"ancho", "serviceName","application", "timeOut" }, method = { RequestMethod.GET }, produces = "application/json")
@@ -154,4 +157,19 @@ public class LogReaderControler {
 		return dtoREsult;
 	}
 
+	
+	
+	
+	@RequestMapping(value = { "/getEstadistica" },  method = { RequestMethod.GET }, produces = "application/json")
+	// produces = "Text/plain")
+	public @ResponseBody
+	List<InfoServicesDTO> geEstadistica() { 
+		List<InfoServicesDTO> result = repository.getListEstadisticas();
+		
+		for (InfoServicesDTO infoServicesDTO : result) {
+			infoServicesDTO.setMedianColum(repository.getMediano(infoServicesDTO.getApplication(), infoServicesDTO.getService())+"");
+		}
+		
+		return result;
+	}
 }

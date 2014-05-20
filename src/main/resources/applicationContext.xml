@@ -29,7 +29,7 @@
 	<!-- Simple Trigger, run every 5 seconds -->
 	<bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="runMeJob" />
-		<property name="repeatInterval" value="5000" />
+		<property name="repeatInterval" value="30000" />
 		<property name="startDelay" value="1000" />
 	</bean>
 

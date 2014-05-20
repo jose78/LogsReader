@@ -6,11 +6,8 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -21,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.github.bbva.logsReader.dto.DonutDTO;
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.ResultDTO;
@@ -105,43 +101,46 @@ public class RepositoryCollections {
 		return result.get(0);
 	}
 
-	public java.lang.Object[][] getDonutServiceApplication(String application, String service) {
-	
-		Object[] params= {application , service};
+	public java.lang.Object[][] getDonutServiceApplication(String application,
+			String service) {
+
+		Object[] params = { application, service };
 		String sql = "SELECT COUNT(*) AS NUMBER , RESPONSECODE FROM CONTAINER_LOGS_DATA.BASIC_LOGS  WHERE APPLICATION = ? AND lABEL = ?  GROUP  BY  RESPONSECODE ORDER BY RESPONSECODE ";
-		RowMapper<Object[][]> row= new RowMapper<Object[][]>() {
-			
+		RowMapper<Object[][]> row = new RowMapper<Object[][]>() {
+
 			@Override
-			public Object[][] mapRow(ResultSet rs, int arg1) throws SQLException {
-				List<TuplaDto> result= new ArrayList<TuplaDto>();
-				do{
+			public Object[][] mapRow(ResultSet rs, int arg1)
+					throws SQLException {
+				List<TuplaDto> result = new ArrayList<TuplaDto>();
+				do {
 					TuplaDto tupla = new TuplaDto(rs.getString(2), rs.getInt(1));
-					result.add(tupla);					
-				}while (rs.next()) ;
-				
-				Object[][] matrix= new Object[result.size()+1][2];
-				int row= 1;
+					result.add(tupla);
+				} while (rs.next());
+
+				Object[][] matrix = new Object[result.size() + 1][2];
+				int row = 1;
 				for (TuplaDto tuplaDto : result) {
 					matrix[row][0] = tuplaDto.getY();
 					matrix[row][1] = tuplaDto.getX();
 					row++;
-					
+
 				}
-				matrix[0][0]= "Http Status";
-				matrix[0][1]= "Nº de veces que se han producido.";
+				matrix[0][0] = "Http Status";
+				matrix[0][1] = "Nº de veces que se han producido.";
 				return matrix;
 			}
 		};
-		
-		Object[][] result = connection.read(row , Object[][].class, sql, params).get(0);
-		return result; 
+
+		Object[][] result = connection.read(row, Object[][].class, sql, params)
+				.get(0);
+		return result;
 	}
 
 	/**
 	 * Retrieve the list of calleds gruped by
 	 * 
 	 * @param serviceName
-	 * @param application 
+	 * @param application
 	 * @return
 	 */
 	public List<List> getListaByGroupTimeElapsed(String ancho,
@@ -168,54 +167,62 @@ public class RepositoryCollections {
 				// lst.add(rs.getObject("timeOut"));
 				return lst;
 			}
-		}, List.class, sql, serviceName , application);
+		}, List.class, sql, serviceName, application);
 
 		return lst;
 	}
 
-	// /**
-	// * Retrieve a list with the name of all services executed.
-	// *
-	// * @return List with the name of services.
-	// */
-	// public List<InfoServicesDTO> getListService(String... params) {
-	//
-	// String paramWhere = "";
-	// if (params.length > 0)
-	// paramWhere = String.format("AND LABEL = '%s' ", params[0]);
-	//
-	// StringBuilder sql = new StringBuilder();
-	// sql.append("  SELECT  sub.label, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
-	// sql.append("  ROUND(");
-	// sql.append("  100.0 * (");
-	// sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
-	// sql.append("  ) /COUNT(*), 1) AS percent_total,");
-	// sql.append("  ROUND(");
-	// sql.append("    100.0 * (");
-	// sql.append("        SUM(CASE WHEN ( logs.elapsed <F_MIN) THEN 1 ELSE 0 END)");
-	// sql.append("    ) /COUNT(*), 1) AS percent_down,");
-	// sql.append("  ROUND(");
-	// sql.append("    100.0 * (");
-	// sql.append("        SUM(CASE WHEN ( logs.elapsed >F_MAX) THEN 1 ELSE 0 END)");
-	// sql.append("    ) /COUNT(*), 1) AS percent_up");
-	// sql.append("  FROM (");
-	// sql.append("  SELECT * , (main.F_AVG - main.standaDesviation ) AS I_MIN   ,  (main.F_AVG + main.standaDesviation ) AS I_MAX");
-	// sql.append("  FROM  (");
-	// sql.append("  SELECT LABEL , COUNT (*) AS TOTAL,");
-	// sql.append("  avg(elapsed) AS F_AVG , ");
-	// sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
-	// sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS ");
-	// sql.append("  WHERE responsecode = '200' ");
-	// sql.append(paramWhere);
-	// sql.append("  GROUP by LABEL ) main ");
-	// sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs WHERE logs.responsecode = '200' GROUP BY sub.label , sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
-	//
-	// log.info("SQL: " + sql.toString());
-	// List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
-	// sql.toString());
-	// return result;
-	// }
-	// }
+	public Integer getMediano(String application, String service) {
+		String sql = "SELECT  MAX(elapsed) as Median_Column FROM  (  SELECT elapsed, ntile(2) OVER (ORDER BY elapsed) AS bucket "
+				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS WHERE  LABEL = ? AND application = ? ) as t WHERE bucket = 1 GROUP BY bucket";
+
+		Object[] param = { service, application };
+		
+		Integer mediano= connection.read(Integer.class, sql, param).get(0);
+		
+		return mediano;
+
+	}
+
+	/**
+	 * Retrieve a list with the name of all services executed.
+	 * 
+	 * @return List with the name of services.
+	 */
+	public List<InfoServicesDTO> getListEstadisticas() {
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("  SELECT  sub.label AS nameService , sub.application, "
+				+ "	  ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
+		sql.append("  ROUND(");
+		sql.append("  100.0 * (");
+		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
+		sql.append("  ) /COUNT(*), 1) AS percent_total,");
+		sql.append("  ROUND(");
+		sql.append("    100.0 * (");
+		sql.append("        SUM(CASE WHEN ( logs.elapsed <F_MIN) THEN 1 ELSE 0 END)");
+		sql.append("    ) /COUNT(*), 1) AS percent_down,");
+		sql.append("  ROUND(");
+		sql.append("    100.0 * (");
+		sql.append("        SUM(CASE WHEN ( logs.elapsed >F_MAX) THEN 1 ELSE 0 END)");
+		sql.append("    ) /COUNT(*), 1) AS percent_up");
+		sql.append("  FROM (");
+		sql.append("  SELECT * , (main.F_AVG - main.standaDesviation ) AS I_MIN   ,  (main.F_AVG + main.standaDesviation ) AS I_MAX");
+		sql.append("  FROM  (");
+		sql.append("  SELECT LABEL ,  application, COUNT (*) AS TOTAL,");
+		sql.append("  avg(elapsed) AS F_AVG , ");
+		sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
+		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS aa");
+		sql.append("   ");
+		sql.append("  GROUP by LABEL , application ) main ");
+		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs  GROUP BY sub.label , sub.application, sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
+
+		log.info("SQL: " + sql.toString());
+		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
+				sql.toString());
+		return result;
+
+	}
 
 	/**
 	 * Retrieve a list with the name of all services executed.

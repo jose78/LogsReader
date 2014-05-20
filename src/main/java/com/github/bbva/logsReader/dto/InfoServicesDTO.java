@@ -12,6 +12,9 @@ import com.github.bbva.logsReader.annt.DTO;
 @DTO
 public class InfoServicesDTO {
 
+	@Column(name = "Median_Column")
+	private String medianColum;
+	
 	@Column(name = "nameService")
 	private String service;
 
@@ -48,6 +51,12 @@ public class InfoServicesDTO {
 		this.application= application;
 	}
 
+	public void setMedianColum(String medianColum) {
+		this.medianColum = medianColum;
+	}
+	public String getMedianColum() {
+		return medianColum;
+	}
 	/**
 	 * @return the service
 	 */
