@@ -172,9 +172,15 @@ public class RepositoryCollections {
 		return lst;
 	}
 
-	public Integer getMediano(String application, String service) {
+	public Integer getMediano(String application, String service,String fecha) {
+		String sqlFecha = "";
+		if(fecha != null) 
+			sqlFecha = String.format(
+				"AND '%s' = to_char(timestamp, 'yyyy-mm-DD')", fecha);
+		
 		String sql = "SELECT  MAX(elapsed) as Median_Column FROM  (  SELECT elapsed, ntile(2) OVER (ORDER BY elapsed) AS bucket "
-				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS WHERE  LABEL = ? AND application = ? ) as t WHERE bucket = 1 GROUP BY bucket";
+				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS WHERE  LABEL = ? AND application = ? "
+				+ sqlFecha+") as t WHERE bucket = 1 GROUP BY bucket";
 
 		Object[] param = { service, application };
 		
@@ -186,11 +192,19 @@ public class RepositoryCollections {
 
 	/**
 	 * Retrieve a list with the name of all services executed.
+	 * @param fecha 
 	 * 
 	 * @return List with the name of services.
 	 */
-	public List<InfoServicesDTO> getListEstadisticas() {
+	public List<InfoServicesDTO> getListEstadisticas(String fecha) {
 
+		
+		String sqlFecha = "";
+		if(fecha != null) 
+			sqlFecha = String.format(
+				"WHERE '%s' = to_char(timestamp, 'yyyy-mm-DD')", fecha);
+		
+		
 		StringBuilder sql = new StringBuilder();
 		sql.append("  SELECT  sub.label AS nameService , sub.application, "
 				+ "	  ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
@@ -212,10 +226,12 @@ public class RepositoryCollections {
 		sql.append("  SELECT LABEL ,  application, COUNT (*) AS TOTAL,");
 		sql.append("  avg(elapsed) AS F_AVG , ");
 		sql.append("  stddev_pop(elapsed) AS standaDesviation , MAX (elapsed) AS F_MAX , MIN (elapsed) AS F_MIN ");
-		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS aa");
-		sql.append("   ");
+		sql.append("  FROM CONTAINER_LOGS_DATA.BASIC_LOGS aa  ");
+		sql.append(sqlFecha);
 		sql.append("  GROUP by LABEL , application ) main ");
-		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs  GROUP BY sub.label , sub.application, sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
+		sql.append("  ) sub, CONTAINER_LOGS_DATA.BASIC_LOGS  logs ");
+		sql.append(sqlFecha);
+		sql.append("  GROUP BY sub.label , sub.application, sub.F_AVG ,sub.standaDesviation ,  sub.F_MAX , F_MIN ORDER BY percent_up DESC");
 
 		log.info("SQL: " + sql.toString());
 		List<InfoServicesDTO> result = connection.read(InfoServicesDTO.class,
