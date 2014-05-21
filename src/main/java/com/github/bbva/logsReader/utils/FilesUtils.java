@@ -96,6 +96,7 @@ public class FilesUtils {
 
 			br = new BufferedReader(new FileReader(file));
 			String line = null;
+			
 			while ((line = br.readLine()) != null) {
 
 				if (cont >= numberOfLine) {
@@ -119,6 +120,11 @@ public class FilesUtils {
 			e.printStackTrace();
 		} finally {
 
+			log.info(String.format(
+					"In the file %s:Rows append %s OK and %s lines with ERROR",
+					file.getName(), ((cont - numberOfLine) - contError),
+					contError));
+			
 			if (fileEnvironmentEntity != null) {
 				fileEnvironmentEntity.setNumberOfLine(cont);
 				connection.update(fileEnvironmentEntity);
@@ -127,10 +133,7 @@ public class FilesUtils {
 						.getName(), environment, cont));
 			}
 
-			log.info(String.format(
-					"In the file %s:Rows append %s OK and %s lines with ERROR",
-					file.getName(), ((cont - numberOfLine) - contError),
-					contError));
+			
 			try {
 				br.close();
 			} catch (IOException e) {

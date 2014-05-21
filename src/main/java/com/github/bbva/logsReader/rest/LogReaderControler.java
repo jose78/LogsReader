@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,12 +14,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.github.bbva.logsReader.db.DBConnection;
 import com.github.bbva.logsReader.db.RepositoryCollections;
-import com.github.bbva.logsReader.dto.DonutDTO;
+import com.github.bbva.logsReader.dto.AppendFilesDto;
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.ResultDTO;
 import com.github.bbva.logsReader.utils.Daemon;
-import com.github.bbva.logsReader.utils.FrecuencyGaussianDto;
+import com.github.bbva.logsReader.utils.FilesUtils;
 
 /**
  * 
@@ -36,6 +34,9 @@ public class LogReaderControler {
 	private DBConnection connection;
 	@Autowired
 	private RepositoryCollections repository;
+	
+	@Autowired
+	private FilesUtils filesUtils;
 
 	@RequestMapping("/Datoo")
 	public String redirect() {
@@ -52,39 +53,47 @@ public class LogReaderControler {
 		daemon.setStartUpDaemon(new Boolean(flagStart));
 	}
 	
-	@RequestMapping(value = { "/LoadFiles" }, params = { "directory" , "files"}, method = { RequestMethod.GET })
-	public void  loadFiles(@RequestParam(value = "directory", defaultValue = "true") String flagStart,
-			@RequestParam(value = "files") String files) {
+	@RequestMapping(value = { "/LoadFiles" }, params = { "directory" , "files","environment"}, method = { RequestMethod.GET })
+	public void  loadFiles(@RequestParam(value = "directory") String directory,
+			@RequestParam(value = "files") String files,
+			@RequestParam(value = "environment") String environment) {
 		List<File> lst= new ArrayList<File>();
 		
-		
-		
-		daemon.setStartUpDaemon(new Boolean(flagStart));
-	}
-
-	@RequestMapping(value = { "/StandardDeviation" }, method = { RequestMethod.GET }, produces = "text/plain")
-	public @ResponseBody
-	String getStandardDeviation() {
-		Map<String, String> map = repository.getStandardDeviation(null, null);
-
-		StringBuilder sb = new StringBuilder();
-		for (Entry<String, String> item : map.entrySet()) {
-			sb.append(item.getKey()).append("	").append(item.getValue())
-					.append("\n");
+		String[] arrayNameFiles= files.split(";");
+		List<File> lstFiles = new ArrayList<File>();
+		for (String nameFile : arrayNameFiles) {
+			lstFiles.add(new File(directory +"/"+ nameFile));
 		}
-		return sb.toString();
+		
+		File[] arrayFiles= lstFiles.toArray(new File[lstFiles.size()]);
+		
+		filesUtils.loadFiles(new AppendFilesDto(arrayFiles, environment));
+		
 	}
 
-	@RequestMapping(value = { "/Gaussian" }, method = { RequestMethod.GET }, produces = "application/json")
-	public @ResponseBody
-	List<FrecuencyGaussianDto> getGaussian() {
+//	@RequestMapping(value = { "/StandardDeviation" }, method = { RequestMethod.GET }, produces = "text/plain")
+//	public @ResponseBody
+//	String getStandardDeviation() {
+//		Map<String, String> map = repository.getStandardDeviation(null, null);
+//
+//		StringBuilder sb = new StringBuilder();
+//		for (Entry<String, String> item : map.entrySet()) {
+//			sb.append(item.getKey()).append("	").append(item.getValue())
+//					.append("\n");
+//		}
+//		return sb.toString();
+//	}
 
-		List<FrecuencyGaussianDto> lst = new ArrayList<FrecuencyGaussianDto>();
-		lst.add(new FrecuencyGaussianDto(5, 2, 0));
-		lst.add(new FrecuencyGaussianDto(1, 6, 1));
-
-		return lst;
-	}
+//	@RequestMapping(value = { "/Gaussian" }, method = { RequestMethod.GET }, produces = "application/json")
+//	public @ResponseBody
+//	List<FrecuencyGaussianDto> getGaussian() {
+//
+//		List<FrecuencyGaussianDto> lst = new ArrayList<FrecuencyGaussianDto>();
+//		lst.add(new FrecuencyGaussianDto(5, 2, 0));
+//		lst.add(new FrecuencyGaussianDto(1, 6, 1));
+//
+//		return lst;
+//	}
 
 	@RequestMapping(value = { "/ListServices" }, params = { "frecuencia","fecha","timeout" }, method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody
@@ -157,6 +166,22 @@ public class LogReaderControler {
 		return dtoREsult;
 	}
 
+	
+	@RequestMapping(value = { "/ListaLlamadasAgrupadasPorHora" }, params = {
+			 "serviceName","application", "limInf","limSup" }, method = { RequestMethod.GET }, produces = "application/json")
+	// produces = "Text/plain")
+	public @ResponseBody
+	List<Object[]> getListNumberOfAccesByHour(
+			@RequestParam(value = "limInf") String limInf,
+			@RequestParam(value = "limSup") String limSup,
+			@RequestParam(value = "serviceName") String serviceName,
+			@RequestParam(value = "application") String application) {
+		List<Object[]> result = repository.getListNumberOfAccesByHour(limInf,limSup,serviceName, application );
+
+		String[] params= {"x_" , "Nº de llamdas."};
+		result.add(0 ,params);
+		return result;
+	}
 	
 	
 	

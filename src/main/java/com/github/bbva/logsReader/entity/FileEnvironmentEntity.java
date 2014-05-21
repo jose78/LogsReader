@@ -2,24 +2,33 @@ package com.github.bbva.logsReader.entity;
 
 import com.github.bbva.logsReader.annt.Column;
 import com.github.bbva.logsReader.annt.Entity;
+import com.github.bbva.logsReader.annt.Id;
 import com.github.bbva.logsReader.annt.Table;
 
 @Entity
-@Table(name = "CONTAINER_LOGS_DATA", schema = "FILE_ENVIRONMENT")
+@Table(schema = "CONTAINER_LOGS_DATA", name = "FILE_ENVIRONMENT")
 public class FileEnvironmentEntity {
 
+	@Id(autoincrement = "id_FILE_ENVIRONMENT")
 	@Column(name = "ID")
 	private Integer id;
+	
 	@Column(name = "NAMEFILE")
 	private String nameFile;
+	
 	@Column(name = "ENVIRONMENT")
 	private String environment;
 
 	@Column(name = "numberOfLine")
 	private Integer numberOfLine;
 
-	public FileEnvironmentEntity(Object object, String string, String environment, Integer numberOfLine) {
+	public FileEnvironmentEntity() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public FileEnvironmentEntity(Object object, String nameFile, String environment, Integer numberOfLine) {
 		
+		this.nameFile = nameFile;
 		this.environment = environment;
 		this.numberOfLine = numberOfLine;
 	}

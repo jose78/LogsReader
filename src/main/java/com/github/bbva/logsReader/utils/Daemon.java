@@ -39,6 +39,12 @@ public class Daemon {
 		}
 	}
 
+	
+	protected void destroy() throws Throwable {
+		// TODO Auto-generated method stub
+		log.info("finalize DAEMON.");
+		super.finalize();
+	}
 	synchronized private boolean inExecution() {
 		semaphore = false;
 		log.info("Executing DAEMON.");

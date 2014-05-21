@@ -3,6 +3,7 @@ package com.github.bbva.logsReader.entity;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Map;
 
 import com.github.bbva.logsReader.annt.Column;
@@ -172,8 +173,18 @@ public class LogEntity {
 		// 2014/04/09 00:00:08.960
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 		try {
+			
+			int sec = 600;
+
 			this.timeStamp = new Timestamp(sdf.parse(map.get("timeStamp"))
 					.getTime());
+			
+	        Calendar cal = Calendar.getInstance();
+	        cal.setTimeInMillis(timeStamp.getTime());
+	        cal.add(Calendar.HOUR, 2);
+	        this.timeStamp = new Timestamp(cal.getTime().getTime());
+	        
+			
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
