@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Round Out Tabs</title>
+<script src="resources/js/main_local.js"></script>
+<link rel='stylesheet' href='resources/css/newStyle.css'>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script>
+
+
+	var idOldOption = "op1";
+	$(function() {
+		$("li").click(function(e) {
+			e.preventDefault();
+			$("li").removeClass("active");
+			$(this).addClass("active");
+		});
+	});
+
+	function loadDiv(tab) {
+		if (idOldOption != null)
+			document.getElementById('div_' + idOldOption).setAttribute("style","visibility:hidden;");
+		
+			
+		idOldOption = tab.id;
+		document.getElementById('div_' + idOldOption).setAttribute("style",
+				"visibility:visible;");
+	}
+	
+	
+	
+</script>
+</head>
+<body>
+	<img src="resources/img/logoBBVA.png" alt="BBVA METRICS" height="80"
+		width="200">
+
+	</div>
+	<ul class="tabs group">
+		<li class="active"><a href="#one" id="op1" >One</a></li>
+		<li><a href="#two" onclick="loadDiv(this)" id="op2">Paco</a></li>
+		<li><a href="#three"  id="op3" onclick="loadDiv(this)">Felipe</a></li>
+		<li><a href="#three" id="op4" onclick="loadDiv(this)">Four</a></li>
+	</ul>
+
+
+
+
+	<div id='div_op1' style='visibility: visible;' class='panel'>op1
+		1</div>
+	<div id='div_op3' style='visibility: collapse;' class='panel'>
+	<script>
+			$(function() {
+				$("#div_op3").load("maqueta3.html" , function(){
+					alert("Felipe");
+					setInterval('executeGettingErrorNow()',300000);
+				});
+			});
+		</script>
+	</div>
+	<div id='div_op4' style='visibility: collapse;' class='panel'>op4
+		4</div>
+	<div id='div_op2' style='visibility: hidden;' class='panel'>
+		<script>
+			$(function() {
+				$("#div_op2").load("maqueta.html" , function(){
+					alert("lanzandoooo");
+					setInterval('executeService()',300000);
+				});
+			});
+		</script>
+	</div>
+
+	<style type="text/css" style="display: none !important;">
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	overflow-x: hidden;
+	font: normal 14px/1.2 'Helvetica Neue', 'Arial'
+}
+
+#demo-top-bar {
+	text-align: left;
+	background: #1c5ba2;
+	zoom: 1;
+	width: 100% !important;
+	z-index: 6000;
+	padding: 20px 0 20px;
+}
+
+#demo-bar-inside {
+	width: 960px;
+	margin: 0 auto;
+	position: relative;
+}
+
+#demo-bar-buttons {
+	padding-top: 10px;
+	float: right;
+}
+
+#demo-bar-buttons a {
+	font-size: 12px;
+	margin-left: 20px;
+	color: white;
+	margin: 2px 0;
+	text-decoration: none;
+	font: 14px "Lucida Grande", Sans-Serif !important;
+}
+
+#demo-bar-buttons a:hover,#demo-bar-buttons a:focus {
+	text-decoration: underline;
+}
+
+#demo-bar-badge {
+	display: inline-block;
+	width: 302px;
+	padding: 0 !important;
+	margin: 0 !important;
+	background-color: transparent !important;
+}
+
+#demo-bar-badge a {
+	display: block;
+	width: 100%;
+	height: 38px;
+	border-radius: 0;
+	bottom: auto;
+	margin: 0;
+	background: url(/images/examples-logo.png) no-repeat;
+	background-size: 100%;
+	overflow: hidden;
+	text-indent: -9999px;
+}
+
+#demo-bar-badge:before,#demo-bar-badge:after {
+	display: none !important;
+}
+</style>
+</body>
+
+</html>

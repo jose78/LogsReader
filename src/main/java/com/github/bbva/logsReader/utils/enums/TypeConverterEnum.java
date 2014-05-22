@@ -11,6 +11,11 @@ import java.math.BigDecimal;
  */
 public enum TypeConverterEnum {
 	
+	INTEGER_TO_STRING(new InternalCommand<String>() {
+		public String executeChange(Object value) {
+			return value + "";
+		}
+	}),
 	
 	LONG_TO_INTEGER(new InternalCommand<Integer>() {
 		public Integer executeChange(Object value) {

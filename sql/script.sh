@@ -35,8 +35,8 @@ ID integer , timeStamp TIMESTAMP NOT NULL  , elapsed INTEGER ,	label VARCHAR(100
 
 CREATE TABLE CONTAINER_LOGS_DATA.FILE_ENVIRONMENT(
 ID integer NOT NULL UNIQUE , 
-nameFile VARCHAR(10) not null,
-environment VARCHAR(10) not null,
+nameFile VARCHAR(100) not null,
+environment VARCHAR(100) not null,
 numberOfLine integer not null,
 PRIMARY KEY(nameFile, environment));
 

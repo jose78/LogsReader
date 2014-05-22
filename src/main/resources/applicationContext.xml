@@ -16,7 +16,7 @@
 	<bean id="fileUtilsBean" class="com.github.bbva.logsReader.utils.FilesUtils"
 		init-method="init" />
 
-	<bean id="runMeTask" class="com.github.bbva.logsReader.utils.Daemon" />
+	<bean id="runMeTask" destroy-method="destroy" class="com.github.bbva.logsReader.utils.Daemon"  />
 
 	<bean id="runMeJob"
 		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">

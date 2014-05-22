@@ -188,12 +188,14 @@ public class RepositoryCollections {
 	/**
 	 * Retrieve a list with the name of all services executed.
 	 * @param fecha 
+	 * @param percentil 
 	 * 
 	 * @return List with the name of services.
 	 */
-	public List<InfoServicesDTO> getListEstadisticas(String fecha) {
+	public List<InfoServicesDTO> getListEstadisticas(String fecha, int percentil) {
 
 		
+		String sqlPercentil = String.format("(case when rownum*1.0/numrows <= %s then elapsed end)" ,  (Double.valueOf(percentil +"")/100));
 		String sqlFecha = "";
 		if(fecha != null) 
 			sqlFecha = String.format(
@@ -201,7 +203,16 @@ public class RepositoryCollections {
 		
 		
 		StringBuilder sql = new StringBuilder();
-		sql.append("  SELECT  sub.label AS nameService , sub.application, "
+		sql.append("  SELECT  (select max(");
+		sql.append(sqlPercentil);
+		sql.append(") as percentile "
+				+ "from (select elapsed, "
+				+ "             row_number() over (order by elapsed) as rownum, "
+				+ "             count(*) over (partition by NULL) as numrows "
+				+ "       FROM COnTAINER_LOGS_DATA.BASIC_LOGS"
+				+ "       WHERE label = sub.label  AND sub.application = sub.application"
+				+ "     ) t) AS percentile, "
+				+ "sub.label AS nameService , sub.application, "
 				+ "	  ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
 		sql.append("  ROUND(");
 		sql.append("  100.0 * (");

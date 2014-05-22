@@ -185,15 +185,16 @@ public class LogReaderControler {
 	
 	
 	
-	@RequestMapping(value = { "/getEstadistica" }, params={"frecuencia","fecha"},  method = { RequestMethod.GET }, produces = "application/json")
+	@RequestMapping(value = { "/getEstadistica" }, params={"percentil","fecha"},  method = { RequestMethod.GET }, produces = "application/json")
 	// produces = "Text/plain")
 	public @ResponseBody
-	List<InfoServicesDTO> geEstadistica(@RequestParam(value = "frecuencia", defaultValue = "diario") String frecuencia,
-			@RequestParam(value = "fecha" , required=false) String fecha ) { 
+	List<InfoServicesDTO> geEstadistica(
+			@RequestParam(value = "fecha" , required=false) String fecha ,
+			@RequestParam(value = "percentil") String percentil) { 
 		
 		if(fecha != null && fecha.length() == 0)
 			fecha = null;
-		List<InfoServicesDTO> result = repository.getListEstadisticas(fecha);
+		List<InfoServicesDTO> result = repository.getListEstadisticas(fecha, Integer.parseInt(percentil));
 		
 		for (InfoServicesDTO infoServicesDTO : result) {
 			infoServicesDTO.setMedianColum(repository.getMediano(infoServicesDTO.getApplication(), infoServicesDTO.getService(),fecha)+"");

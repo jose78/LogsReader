@@ -25,20 +25,24 @@
 	});
 </script>
 <script type="text/javascript">
+	google.load("visualization", "1", {
+		packages : [ "corechart" ]
+	});
 
-  google.load("visualization", "1", {packages:["corechart"]});
+	function drawDonut(dataDonut) {
+		var data = google.visualization.arrayToDataTable(dataDonut);
 
-  function drawDonut(dataDonut) {
-    var data = google.visualization.arrayToDataTable(dataDonut);
+		var options = {
+				width : 800,
+				height : 400,
+			title : 'Donut con los status HTTP.',
+			pieHole : 0.4,
+		};
 
-    var options = {
-      title: 'Donut con los status HTTP.',
-      pieHole: 0.4,
-    };
-
-    var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
-    chart.draw(data, options);
-  }
+		var chart = new google.visualization.PieChart(document
+				.getElementById('donutchart'));
+		chart.draw(data, options);
+	}
 </script>
 
 </head>
@@ -74,11 +78,13 @@
 																		</tr>
 																		<tr>
 																			<td><a> Agrupado</a></td>
-																			<td><input type="text" id="agrupador" onchange="callService();" value="0"	style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></td>
+																			<td><input type="text" id="agrupador"
+																				onchange="callService();" value="0"
+																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></td>
 																		</tr>
 																	</table>
 																</li>
-															
+
 															</ul>
 														</li>
 													</ul>
@@ -96,19 +102,21 @@
 													var parameterTO = null;
 													var parameterAggregate = null;
 													var parameterStandaDesviation = null;
-													var parameteragrupador = null;
+													
 													var parameterDate = null;
 													var parameterFrecuenciaTiempo = null;
-													var parameterapplication  = null;
+													var parameterapplication = null;
 
 													function callService() {
+														
+														document.getElementById("hourchart").innerHTML = '';
+														
 														console
 																.log("callService");
-														
-														
 
-														var agrupador = document.getElementById('agrupador').value;
-														
+														var agrupador = document
+																.getElementById('agrupador').value;
+
 														var url = "/ListaLlamadasAgrupadasPorTiempo?serviceName="
 																+ parameterService
 																+ "&ancho="
@@ -117,7 +125,8 @@
 																+ parameterTO
 																+ "&frecuenciaTiempo="
 																+ parameterFrecuenciaTiempo
-																+ "&application="+parameterapplication;
+																+ "&application="
+																+ parameterapplication;
 
 														function handler() {
 
@@ -139,28 +148,61 @@
 														client.send();
 
 													}
+
+													function callServiceHour(
+															limInf, limSup) {
+														console
+																.log("callServiceHour");
+
+														var agrupador = document
+																.getElementById('agrupador').value;
+
+														var url = "/ListaLlamadasAgrupadasPorHora?serviceName="
+																+ parameterService
+																+ "&limInf="
+																+ limInf
+																+ '&limSup='
+																+ limSup
+																+ "&application="
+																+ parameterapplication;
+														
+														console.log(url);
+
+														function handler() {
+
+															if (client.readyState == 4
+																	&& client.status == 200) {
+																console
+																		.log("Handler start");
+																console
+																		.log(client.responseText);
+																printDataHour(client.responseText);
+																console
+																		.log("Handler FIN");
+															}
+														}
+
+														var client = new XMLHttpRequest();
+														client.onreadystatechange = handler;
+														client.open("GET", url);
+														client.send();
+
+													}
 													
+													
+													var intervalo= '';
 
 													function printData(dataJson) {
 
 														var json = JSON
 																.parse(dataJson);
 														console.log(json);
-														if(json.listDataDonut.length > 0)
+														if (json.listDataDonut.length > 0)
 															drawDonut(json.listDataDonut);
 														try {
 
 															var title = "Gráfica que recoge el Nº de llamadas por intervalo de milisegundos";
 
-															/*  var data = google.visualization.arrayToDataTable([
-															                                                   ['Month', 'Bolivia', 'Ecuador', 'Madagascar', 'Papua New Guinea', 'Rwanda', 'Average'],
-															                                                   ['2004/05',  165,      938,         522,             998,           450,      614.6],
-															                                                   ['2005/06',  135,      1120,        599,             1268,          288,      614.6],
-															                                                   ['2006/07',  157,      1167,        587,             807,           397,      614.6],
-															                                                   ['2007/08',  139,      1110,        615,             968,           215,      614.6],
-															                                                   ['2008/09',  136,      691,         629,             1026,          366,      614.6]
-															                                                 ]);
-															 */
 
 															console
 																	.log("eje y : "
@@ -174,8 +216,8 @@
 
 															var options = {
 																title : title,
-																width : 1000,
-																height : 600,
+																width : 800,
+																height : 400,
 																vAxis : {
 																	title : json.axisY
 																},
@@ -190,7 +232,6 @@
 																}
 															};
 
-															
 															var chart = new google.visualization.ComboChart(
 																	document
 																			.getElementById('visualization'));
@@ -206,16 +247,27 @@
 																			.getValue(
 																					selectedItem.row,
 																					selectedItem.column);
-																	alert('The user selected '
-																			+ value);
+																	
 																	console
 																			.log("row:"
 																					+ selectedItem.row
 																					+ " -> "
 																					+ json.listData[selectedItem.row + 1][0]);
-																	console
-																			.log("column:"
-																					+ selectedItem.column);
+
+																	intervalo = json.listData[selectedItem.row + 1][0];
+																	var array = json.listData[selectedItem.row + 1][0]
+																			.split('-');
+																	console.log("length: " +array);
+																	if (array.length <2) {
+																		callServiceHour(
+																				array[0],
+																				array[0]);
+																	} else {
+																		callServiceHour(
+																				array[0],
+																				array[1]);
+																	}
+
 																}
 															}
 
@@ -244,83 +296,54 @@
 
 													}
 
-													function drawVisualization() {
-														// Some raw data (not necessarily accurate)
-														var data = google.visualization
-																.arrayToDataTable([
-																		[
-																				'Month',
-																				'Bolivia',
-																				'Ecuador',
-																				'Madagascar',
-																				'Papua New Guinea',
-																				'Rwanda',
-																				'Average' ],
-																		[
-																				'2004/05',
-																				165,
-																				938,
-																				522,
-																				998,
-																				450,
-																				614.6 ],
-																		[
-																				'2005/06',
-																				135,
-																				1120,
-																				599,
-																				1268,
-																				288,
-																				682 ],
-																		[
-																				'2006/07',
-																				157,
-																				1167,
-																				587,
-																				807,
-																				397,
-																				623 ],
-																		[
-																				'2007/08',
-																				139,
-																				1110,
-																				615,
-																				968,
-																				215,
-																				609.4 ],
-																		[
-																				'2008/09',
-																				136,
-																				691,
-																				629,
-																				1026,
-																				366,
-																				569.6 ] ]);
+													function printDataHour(
+															dataJson) {
 
-														var options = {
-															title : 'Monthly Coffee Production by Country',
-															vAxis : {
-																title : "Cups"
-															},
-															hAxis : {
-																title : "Month"
-															},
-															seriesType : "bars",
-															series : {
-																5 : {
-																	type : "line"
-																}
-															}
-														};
+														var json = JSON
+																.parse(dataJson);
+														console.log(json);
+														
+														try {
 
-														var chart = new google.visualization.ComboChart(
-																document
-																		.getElementById('chart_div'));
-														chart.draw(data,
-																options);
+															var title = "Gráfica que recoge el Nº de llamadas por franja horaria para las llamadas que duran " +intervalo+" ms.";
+															var data = google.visualization.arrayToDataTable(json);
+															var options = {
+																title : title,
+																width : 800,
+																height : 400,
+																vAxis : {
+																	title : 'Nº de llamdas'
+																},
+																hAxis : {
+																	title : 'Franja horaria.'
+																},
+																seriesType : "bars",
+																
+															};
+
+															var chart = new google.visualization.ComboChart(
+																	document
+																			.getElementById('hourchart'));
+															
+
+															
+
+															chart.draw(data,
+																	options);
+
+															console
+																	.log('Data create OK');
+
+														} catch (err) {
+															console
+																	.log('ERROR: '
+																			+ err);
+														}
+
+														console
+																.log("printData FIN");
+
 													}
-													google
-															.setOnLoadCallback(drawVisualization);
 
 													function load() {
 
@@ -328,15 +351,13 @@
 
 														parameterService = GetUrlValue("service");
 														parameterTO = GetUrlValue("to");
-														
+
 														parameterStandaDesviation = GetUrlValue("standaDesviation");
-														parameteragrupador = GetUrlValue("agrupador");
-														parameterapplication =  GetUrlValue("application");
+														
+														parameterapplication = GetUrlValue("application");
 														parameterDate = GetUrlValue("fecha");
 														parameterFrecuenciaTiempo = GetUrlValue("frecuenciaTiempo");
-														document
-																.getElementById("agrupador").value = parameteragrupador;
-
+														
 														console
 																.log("frecuenciaTiempo:"
 																		+ parameterFrecuenciaTiempo);
@@ -347,14 +368,12 @@
 																.log("service:"
 																		+ parameterService);
 														console
-														.log("application:"
-																+ parameterapplication);
-														console
-																.log("@grupador:"
-																		+ parameteragrupador);
+																.log("application:"
+																		+ parameterapplication);
+														
 														console.log("to:"
 																+ parameterTO);
-														
+
 														console
 																.log("StandaDesviation:"
 																		+ parameterStandaDesviation);
@@ -396,14 +415,23 @@
 														}
 													}
 												</script>
-												
-												
+
+
 												<table>
-												<tr><td> <p id="info"> </p> </td></tr>
-												<tr><td id="visualization"> </td></tr>
-												<tr><td id="donutchart"style="width: 500px; height: 400px;" > </td></tr>
+													<tr>
+														<td id="visualization"></td>
+													</tr>
+													<tr>
+														<td id="hourchart" >
+														</td>
+													</tr>
+													<tr>
+														<td id="donutchart">
+														</td>
+													</tr>
+													
 												</table>
-												
+
 											</div>
 										</td>
 									</tr>

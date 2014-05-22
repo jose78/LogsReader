@@ -19,27 +19,28 @@
 
 
 <script type="text/javascript">
-	function executeService() {
-		console.log("starting executeSErvice");
 
-		var fecha = document.getElementById('datepicker').value;
-		var frecuenciaTiempo = $('input[name=myRadios]:checked').val();
-		var timeout = document.getElementById('timeout').value;
-		console.log("frecuenciaTiempo: " + frecuenciaTiempo + " fecha:" + fecha
-				+ " timeOut:" + timeout);
-
-		if (frecuenciaTiempo == null) {
-			frecuenciaTiempo = "historico";
-		}
+     var contRow= 0;
+	function executeServiceEst() {
+		console.log("starting executeServiceEst");
 
 		console.log("Fehca:" + fecha);
 
-		var url = "/ListServices?frecuencia=" + frecuenciaTiempo + "&fecha="
-				+ fecha + "&timeout=" + timeout;
+		var fecha = '';
+		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
+		if(frecuenciaTiempo == 'diario')
+			fecha = '&fecha='+document.getElementById('datepicker').value;
+		else
+			fecha="&fecha=";
+		
+		var percentil = document.getElementById('percentil').value;
+		
+		var url = "/getEstadistica?frecuencia="+frecuenciaTiempo+fecha+"&percentil="+percentil;
 
 		console.log("URL: " + url);
 		callService(url, function(result) {
-			clean('tableServices');
+			contRow= 0;
+			clean('tableServicesEst');
 			printResult(result);
 		});
 	}
@@ -57,7 +58,7 @@
 	});
 
 	function printResult(dataJSON) {
-		var table = document.getElementById('tableServices');
+		var table = document.getElementById('tableServicesEst');
 		var json = JSON.parse(dataJSON);
 
 		for (var i = 0; i < json.length; i++) {
@@ -68,61 +69,51 @@
 
 			if (row == null) {
 				row = addRow(table, data.service, data.application,
-						data.aggregate);
+						data.aggregate , contRow , json);
+				contRow++;
 			}
-			row.insertCell(0).innerHTML = data.service;
-			row.insertCell(1).innerHTML = data.application;
-			row.insertCell(2).innerHTML = data.aggregate + " ms";
-			/* 	row.insertCell(2).innerHTML = data.standaDesviation;
-				row.insertCell(3).innerHTML = data.ok + " %"; */
-			row.insertCell(3).innerHTML = data.failDown + " %";
-			row.insertCell(4).innerHTML = data.failUp + " %";
+			row.insertCell(0).innerHTML = data.application;
+			row.insertCell(1).innerHTML = data.service;
+			row.insertCell(2).innerHTML = data.medianColum + " ms";
+			row.insertCell(3).innerHTML = data.percentile + " ms";
+			row.insertCell(4).innerHTML = data.aggregate + " ms";
+			row.insertCell(5).innerHTML = '+- '+data.standaDesviation;
+			row.insertCell(6).innerHTML = data.ok + " %";
+			row.insertCell(7).innerHTML = data.failDown + " %";
+			row.insertCell(8).innerHTML = data.failUp + " %";
 
-			if (i % 2)
-				row.className = 'alt';
-
+			row.cells[1].align = "center";
+			row.cells[5].align = "center";
+			row.cells[6].align = "center";
+			row.cells[7].align = "center";
 			row.cells[2].align = "center";
 			row.cells[3].align = "center";
 			row.cells[4].align = "center";
 
 		}
-	}
-
-	function showPanel(nameService, application) {
-		console.log("showPanel:" + nameService + "   - " + application);
-
-		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
-		var fecha = document.getElementById('datepicker').value;
 		
-		window.open("grafica.html?service=" + nameService + '&application=' + application + '&to=25&fecha='
-				+ fecha + "&frecuenciaTiempo=" + frecuenciaTiempo, "MsgWindow"
-				+ nameService, "width=800, height=700");
-
+		document.getElementById('thPercentil').innerHTML= "Percentil "+document.getElementById('percentil').value;
+		
 	}
-	/*
-	 * .datagrid table thead th {
-	 background: #1c5ba2;
-	 background: -moz-linear-gradient(center top, #006699 5%, #1c5ba2 100%);
-	 filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#1c5ba2');
-	 background-color: #006699;
-	 color: #FFFFFF;
-	 font-size: 15px;
-	 font-weight: bold;
-	 border-left: 1px solid #0070A8;
-	 }
-	 */
-	function addRow(table, nameService, application, aggregate) {
+
+	
+	
+	function addRow(table, nameService, application, aggregate,contRow , json) {
 
 		var rows = table.rows;
 		var rowCount = rows.length;
 
 		var row = table.insertRow(rowCount);
 		row.height = "30px";
-		row.id = "row_" + nameService + "_" + application;
+		row.style.backgroundColor="lightblue";
+		
+		row.id = contRow;
 		row.onclick = function() {
 			console.log("Pulsado " + nameService);
-			showPanel(nameService, application);
+			
+			alert("Fila: " + json[contRow]);
 		};
+		
 
 		return row;
 	}
@@ -155,15 +146,13 @@
 
 																	<table style="font-size: 14PX; padding-left: 38px;">
 																		<tr>
-																			<td><a onclick="executeService();"> test</a></td>
+																			<td><a onclick="executeServiceEst();"> test</a></td>
 																			<td></td>
 																		</tr>
-																		
 																		<tr>
-																			<td><a> Time Out</a></td>
-																			<td><input type="text" id="timeout"
-																				value="0" onchange="executeService();"
-																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 70px; height: 15px;"></input>
+																			<td><a>Percentil</a></td>
+																			<td><input type="text" id="percentil" value="95"
+																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 50px; height: 15px;"></input>
 																		</tr>
 																		<tr>
 																			<td><a>Fecha</a></td>
@@ -234,21 +223,23 @@
 
 
 
-																		<table class="gradienttable" id="tableServices">
-																			<thead>
+																		<table class="gradienttable" id="tableServicesEst" style="width: 90%;">
+																			<thead >
 																				<tr align="center" height="40px">
-																					<th width="25%">Servicio</th>
-																					<th width="25%">Aplicación</th>
-																					<th width="15%">Tiempo medio</th>
-																					<th width="15%">% Por debajo del TimeOut</th>
-																					<th width="20%">% Por encima del TimeOut</th>
+																					<th ">Application</th>
+																					<th ">Servicio</th>
+																					<th >Median Colum</th>
+																					<th  id="thPercentil">Percentil</th>
+																					<th >Agrgate</th>
+																					<th>Standar Desviation</th>
+																					<th >% OK</th>
+																					<th >% Bajo OK</th>
+																					<th >%Alto OK</th>
 																				</tr>
 																			</thead>
 																			<tbody>
 																			</tbody>
 																		</table>
-
-
 																	</td>
 																</tr>
 															</tbody>

@@ -12,6 +12,9 @@ import com.github.bbva.logsReader.annt.DTO;
 @DTO
 public class InfoServicesDTO {
 
+	@Column(name= "percentile")
+	private String percentile;
+	
 	@Column(name = "Median_Column")
 	private String medianColum;
 	
@@ -39,18 +42,12 @@ public class InfoServicesDTO {
 
 	public InfoServicesDTO() {
 	}
-	public InfoServicesDTO(String service, int aggregate, int standaDesviation,
-			int ok, int failUp, int failDown ,String application) {
-		super();
-		this.service = service;
-		this.aggregate = aggregate;
-		this.standaDesviation = standaDesviation;
-		this.ok = ok;
-		this.failUp = failUp;
-		this.failDown = failDown;
-		this.application= application;
+	
+	
+	public String getPercentile() {
+		return percentile;
 	}
-
+	
 	public void setMedianColum(String medianColum) {
 		this.medianColum = medianColum;
 	}
