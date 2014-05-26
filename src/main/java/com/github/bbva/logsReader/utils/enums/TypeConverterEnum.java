@@ -16,7 +16,11 @@ public enum TypeConverterEnum {
 			return value + "";
 		}
 	}),
-	
+	INTEGER_TO_LONG(new InternalCommand<Long>() {
+		public Long executeChange(Object value) {
+			return Long.parseLong(value+"");
+		}
+	}),
 	LONG_TO_INTEGER(new InternalCommand<Integer>() {
 		public Integer executeChange(Object value) {
 			return Integer.parseInt(value + "");

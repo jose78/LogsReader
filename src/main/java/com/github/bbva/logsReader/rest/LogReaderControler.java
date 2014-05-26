@@ -196,9 +196,9 @@ public class LogReaderControler {
 			fecha = null;
 		List<InfoServicesDTO> result = repository.getListEstadisticas(fecha, Integer.parseInt(percentil));
 		
-		for (InfoServicesDTO infoServicesDTO : result) {
-			infoServicesDTO.setMedianColum(repository.getMediano(infoServicesDTO.getApplication(), infoServicesDTO.getService(),fecha)+"");
-		}
+//		for (InfoServicesDTO infoServicesDTO : result) {
+//			infoServicesDTO.setMedianColum(repository.getMediano(infoServicesDTO.getApplication(), infoServicesDTO.getService(),fecha)+"");
+//		}
 		
 		return result;
 	}

@@ -195,7 +195,16 @@ public class RepositoryCollections {
 	public List<InfoServicesDTO> getListEstadisticas(String fecha, int percentil) {
 
 		
-		String sqlPercentil = String.format("(case when rownum*1.0/numrows <= %s then elapsed end)" ,  (Double.valueOf(percentil +"")/100));
+		String sqlP = "(select max((case when rownum*1.0/numrows <= %s then elapsed end) ) as percentile "
+						+ "from (select elapsed, "
+						+ "             row_number() over (order by elapsed) as rownum, "
+						+ "             count(*) over (partition by NULL) as numrows "
+						+ "       FROM COnTAINER_LOGS_DATA.BASIC_LOGS"
+						+ "       WHERE label = sub.label  AND sub.application = sub.application"
+						+ "     ) t) AS %s ";
+		
+		
+		String sqlPercentil = String.format("" ,  (Double.valueOf(percentil +"")/100));
 		String sqlFecha = "";
 		if(fecha != null) 
 			sqlFecha = String.format(
@@ -203,17 +212,7 @@ public class RepositoryCollections {
 		
 		
 		StringBuilder sql = new StringBuilder();
-		sql.append("  SELECT  (select max(");
-		sql.append(sqlPercentil);
-		sql.append(") as percentile "
-				+ "from (select elapsed, "
-				+ "             row_number() over (order by elapsed) as rownum, "
-				+ "             count(*) over (partition by NULL) as numrows "
-				+ "       FROM COnTAINER_LOGS_DATA.BASIC_LOGS"
-				+ "       WHERE label = sub.label  AND sub.application = sub.application"
-				+ "     ) t) AS percentile, "
-				+ "sub.label AS nameService , sub.application, "
-				+ "	  ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
+		sql.append("  SELECT sub.label AS nameService , sub.application, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
 		sql.append("  ROUND(");
 		sql.append("  100.0 * (");
 		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
@@ -225,7 +224,11 @@ public class RepositoryCollections {
 		sql.append("  ROUND(");
 		sql.append("    100.0 * (");
 		sql.append("        SUM(CASE WHEN ( logs.elapsed >F_MAX) THEN 1 ELSE 0 END)");
-		sql.append("    ) /COUNT(*), 1) AS percent_up");
+		sql.append("    ) /COUNT(*), 1) AS percent_up , ");
+		sql.append(String.format(sqlP,  (Double.valueOf(percentil +"")/100) , "PERCENTILE")).append(" , ");
+		sql.append(String.format(sqlP, 0.25, "Q1")).append(" , ");
+		sql.append(String.format(sqlP, 0.50, "Q2")).append(" , ");
+		sql.append(String.format(sqlP, 0.75, "Q3"));
 		sql.append("  FROM (");
 		sql.append("  SELECT * , (main.F_AVG - main.standaDesviation ) AS I_MIN   ,  (main.F_AVG + main.standaDesviation ) AS I_MAX");
 		sql.append("  FROM  (");

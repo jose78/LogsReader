@@ -39,7 +39,7 @@ public class ClassUtils {
 				}
 			}
 		} catch (Exception e) { 
-			log.error("Error "+format , e);
+			log.error("Error format:"+format , e);
 			e.printStackTrace();
 		}
 	}

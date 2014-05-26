@@ -12,18 +12,28 @@ import com.github.bbva.logsReader.annt.DTO;
 @DTO
 public class InfoServicesDTO {
 
-	@Column(name= "percentile")
+	@Column(name = "PERCENTILE")
 	private String percentile;
-	
-	@Column(name = "Median_Column")
-	private String medianColum;
-	
+
+	@Column(name = "Q2")
+	private long medianColum;
+
+	@Column(name = "Q1")
+	private long q1;
+
+	@Column(name = "Q3")
+	private long q3;
+
 	@Column(name = "nameService")
 	private String service;
 
 	@Column(name = "application")
 	private String application;
-	
+
+	@Column(name = "f_max")
+	private long max;
+	@Column(name = "f_min")
+	private long min;
 
 	@Column(name = "f_avg")
 	private long aggregate;
@@ -44,16 +54,26 @@ public class InfoServicesDTO {
 	}
 	
 	
+	
+	public long getMax() {
+		return max;
+	}
+	public long getMin() {
+		return min;
+	}
+	public long getMedianColum() {
+		return medianColum;
+	}
 	public String getPercentile() {
 		return percentile;
 	}
-	
-	public void setMedianColum(String medianColum) {
-		this.medianColum = medianColum;
+	public long getQ1() {
+		return q1;
 	}
-	public String getMedianColum() {
-		return medianColum;
+	public long getQ3() {
+		return q3;
 	}
+
 	/**
 	 * @return the service
 	 */
@@ -64,6 +84,7 @@ public class InfoServicesDTO {
 	public String getApplication() {
 		return application;
 	}
+
 	/**
 	 * 
 	 * @return the aggregate
@@ -100,17 +121,14 @@ public class InfoServicesDTO {
 		return failDown;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
-		return String
-				.format("InfoServicesDTO [service=%s, application=%s , aggregate=%s, standaDesviation=%s, ok=%s, failUp=%s, failDown=%s]",
-						service, application, aggregate, standaDesviation, ok, failUp,
-						failDown);
+		return "InfoServicesDTO [percentile=" + percentile + ", medianColum="
+				+ medianColum + ", q1=" + q1 + ", q3=" + q3 + ", service="
+				+ service + ", application=" + application + ", aggregate="
+				+ aggregate + ", standaDesviation=" + standaDesviation
+				+ ", ok=" + ok + ", failUp=" + failUp + ", failDown="
+				+ failDown + "]";
 	}
 
 }
