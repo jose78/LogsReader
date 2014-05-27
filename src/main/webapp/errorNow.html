@@ -36,6 +36,12 @@
 		callService(url, function(result) {
 			clean('idTableErrorNow');
 			printResultErrorNow(result);
+			var date = new Date;
+			var seconds = date.getSeconds();
+			var minutes = date.getMinutes();
+			var hour = date.getHours();
+			document.getElementById('refreshDate').innerHTML= "Última actualziación:" + hour+":"+minutes+":"+seconds;
+			
 		});
 		// 
 		 
@@ -175,18 +181,7 @@
 		}
 	}
 
-	function showPanel(nameService, aggregate) {
-		console.log("showPanel:" + nameService + "   - " + aggregate);
-
-		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
-		var fecha = document.getElementById('datepicker').value;
-		var agrupador = document.getElementById('agrupador').value;
-		window.open("panel.html?service=" + nameService + '&agrupador='
-				+ agrupador + '&aggregate=' + aggregate + '&to=25&fecha='
-				+ fecha + "&frecuenciaTiempo=" + frecuenciaTiempo, "MsgWindow"
-				+ nameService, "width=800, height=700");
-
-	}
+	
 
 	function addRow(table, nameService, aggregate) {
 
@@ -195,16 +190,13 @@
 
 		var row = table.insertRow(rowCount);
 		row.id = "row_error_now_" + nameService;
-		row.onclick = function() {
-			console.log("Pulsado " + nameService);
-			showPanel(nameService, aggregate);
-		};
+		
 
 		return row;
 	}
 </script>
 </head>
-<body id="body">
+<body id="body" onload="executeGettingErrorNow();setInterval('executeGettingErrorNow()', 50000);">
 
 	<div id="sites-chrome-everything-scrollbar">
 		<div id="sites-chrome-everything">
@@ -229,7 +221,7 @@
 															<ul class="has-expander">
 																<li class="">
 
-																	<table style="font-size: 14PX; padding-left: 38px;">
+																	<table style="font-size: 10pt; padding-left: 38px;">
 																		<tr>
 																			<td><a onclick="executeGettingErrorNow();">
 																					test</a></td>
@@ -265,10 +257,12 @@
 														<table
 															class="sites-layout-name-one-column sites-layout-hbox">
 															<tbody>
-																<tr align="center">
+																<tr>
+																
 																	<td class="sites-layout-tile sites-tile-name-content-1"
 																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
-																		<table class="gradienttable" style="width: 470px; " id="idTableErrorNow">
+																		<a id="refreshDate" style="font-size: 10pt;text-align: left;" ></a>
+																		<table class="gradienttable"  style="width:100%;" id="idTableErrorNow">
 																			<thead >
 																				<tr align="center" height="40px">
 																					<th width="30%">Aplicación</th>

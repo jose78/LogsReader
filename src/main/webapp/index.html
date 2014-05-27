@@ -1,129 +1,60 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
+
+<html>
+<head>
 <link rel="stylesheet" type="text/css" href="resources/css/style.css">
-
-
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
 <script type="text/javascript">
-	function callService() {
+	var idOldOption = "op1";
+	$(function() {
+		$("li").click(function(e) {
+			e.preventDefault();
+			$("li").removeClass("active");
+			$(this).addClass("active");
+		});
+	});
 
-		var url = "/ListServices";
+	function loadDiv(tab) {
+		if (idOldOption != null)
+			document.getElementById('div_' + idOldOption).setAttribute("style",
+					"visibility:hidden;");
 
-		function handler() {
-
-			if (client.readyState == 4 && client.status == 200) {
-
-				print(client.responseText);
-			}
-		}
-
-		var client = new XMLHttpRequest();
-		client.onreadystatechange = handler;
-		client.open("GET", url);
-		client.send();
-
-	}
-
-	function print(dataJSON) {
-
-		var table = document.getElementById('tableServices');
-
-		/* 		{
-		 "service": "NAME_SERVICE",
-		 "variance": 34343,
-		 "covariance": 343,
-		 "ok": 44,
-		 "fail_up": 16,
-		 "fail_down":40
-		 } */
-
-		var json = JSON.parse(dataJSON);
-
-		for (var i = 0; i < json.length; i++) {
-
-			var data = json[i];
-
-			console.log(data);
-			var row = document.getElementById("row" + data.service);
-
-			if (row == null) {
-				row = addRow(table, data.service, data.aggregate);
-				row.insertCell(0).innerHTML = data.service;
-				row.insertCell(1).innerHTML = data.aggregate;
-				row.insertCell(2).innerHTML = data.standaDesviation;
-				row.insertCell(3).innerHTML = data.ok + " %";
-				row.insertCell(4).innerHTML = data.failDown + " %";
-				row.insertCell(5).innerHTML = data.failUp + " %";
-
-			} else {
-				row.cells[1].innerHTML = data.aggregate;
-				row.cells[2].innerHTML = data.standaDesviation;
-				row.cells[3].innerHTML = data.ok + " %";
-				row.cells[4].innerHTML = data.failDown + " %";
-				row.cells[5].innerHTML = data.failUp + " %";
-			}
-
-			console.log("Row obtenido: " + row.id);
-			console.log(row);
-
-		}
-	}
-
-	function showPanel(nameService, aggregate) {
-		console.log("showPanel:" + nameService + "   - " + aggregate);
-
-		var agrupador = document.getElementById('agrupador').value;
-		window.open("panel.html?service=" + nameService + '&agrupador='
-				+ agrupador + '&aggregate=' + aggregate + '&to=25', "MsgWindow"
-				+ nameService, "width=800, height=700");
-
-	}
-	function addRow(table, nameService, aggregate) {
-
-		console.log("Creamos fila para: " + nameService);
-
-		var rowCount = table.rows.length;
-		var row = table.insertRow(rowCount);
-		row.id = "row" + nameService;
-
-		row.onclick = function() {
-			console.log("Service:[]");
-			showPanel(nameService, aggregate);
-		};
-
-		console.log(row);
-		return row;
-
+		idOldOption = tab.id;
+		document.getElementById('div_' + idOldOption).setAttribute("style",
+				"visibility:visible;");
 	}
 </script>
-<body>
-	<div class="navbar">
-		<div class="navbar-inner">
-			<a class="brand" href="#">Cuadro de Mandos para la evaluación de
-				los tiempos de ejecución.</a>
-		</div>
-	</div>
-
-
-	Agrupador
-	<input type="text" value="1" id="agrupador">
-	<input type="button" value="Text" onclick="callService()">
-
-
-	</script>
-	<div align="center">
-		<table class="reference" style="width: 80%" id="tableServices">
-			<tr>
-				<th>Servicio</th>
-				<th>Tiempo medio</th>
-				<th>Intervalo aceptable</th>
-				<th>% aceptables</th>
-				<th>% bajo el intervalo</th>
-				<th>% por encima del intervalo</th>
-			</tr>
+</head>
+<body style="background-color: #E0E6F1;" onload="javascript:window.location.replace('index2.html#tab1');">
 
 
 
-		</table>
-	</div>
+
+	<article class="tabs">
+
+		<section id="tab1">
+			<h2>
+				<a href="#tab1" onclick="loadDiv(this)">Tab 1</a>
+			</h2>
+				<object type="text/html" data="main.html" width="99%" height="99%"> </object>
+			
+		</section>
+
+		<section id="tab2">
+			<h2>
+				<a href="#tab2">Tab 2</a>
+			</h2>
+				<object type="text/html" data="errorNow.html" width="99%" height="99%"> </object>
+		</section>
+
+		<section id="tab3">
+			<h2>
+				<a href="#tab3">Tab 3</a>
+			</h2>
+			<object type="text/html" data="estadisticas.html" width="99%" height="99%"> </object>
+		</section>
+
+	</article>
 </body>
+</html>

@@ -42,6 +42,13 @@
 			contRow= 0;
 			clean('tableServicesEst');
 			printResult(result);
+			
+			var date = new Date;
+			var seconds = date.getSeconds();
+			var minutes = date.getMinutes();
+			var hour = date.getHours();
+			document.getElementById('refreshDate').innerHTML= "Última actualziación:" + hour+":"+minutes+":"+seconds;
+			
 		});
 	}
 
@@ -113,6 +120,31 @@
 			
 			alert("Fila: " + json[contRow].q3);
 			alert("q3: " + json[contRow].q3);
+			
+			
+			function drawVisualization(q1,q2,q3,p95 , max , min) {
+				   // Populate the data table.
+				    var dataTable = google.visualization.arrayToDataTable([    
+				       [0,0 ,0 ,0 ,       ,40,45],
+				       [5, 31, 38, 55, 66 ,40,45]
+				       
+				    // Treat first row as data as well.
+				    ], true);
+
+				  var option = {legend:'none', width:600, height:400 , 
+				               
+				               title:'Sticks, horizontal',
+				        curveType:'function',
+				        lineWidth: 4,
+				        series: [{'color': '#E7711B'}],
+				        intervals: { 'lineWidth': 4, 'barWidth': 0.5 },
+				        series: {1: {type: "area"},2: {type: "area"}}
+				               };
+				    // Draw the chart.
+				    var chart = new google.visualization.CandlestickChart(document.getElementById('visualization'));
+				  chart.draw(dataTable,option);
+				}
+			
 		};
 		
 
@@ -120,7 +152,7 @@
 	}
 </script>
 </head>
-<body id="body">
+<body id="body" onload="executeServiceEst();setInterval('executeServiceEst()', 60000);">
 
 	<div id="sites-chrome-everything-scrollbar">
 		<div id="sites-chrome-everything">
@@ -217,14 +249,14 @@
 															<tbody>
 																<tr>
 																	<td class="sites-layout-tile sites-tile-name-content-1"
-																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
+																		style="font-size: 12px; font: 10pt Arial, sans-serif;"style="width: 90%;">
 
 
 
 
 
-
-																		<table class="gradienttable" id="tableServicesEst" style="width: 90%;">
+<a id="refreshDate"></a>
+																		<table class="gradienttable" id="tableServicesEst" style="width:100%;"">
 																			<thead >
 																				<tr align="center" height="40px">
 																					<th ">Application</th>

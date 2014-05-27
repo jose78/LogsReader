@@ -294,7 +294,8 @@ public class RepositoryCollections {
 		// "GROUP BY LABEL  , responseCode HAVING COUNT(DISTINCT(LABEL)) <= 3   order by F_COUNT DESC ) ";
 
 		String sql = String
-				.format(" SELECT application , label , COUNT(*) AS NUM_ERR FROM  CONTAINER_LOGS_DATA.BASIC_LOGS WHERE responsecode != '200' AND timestamp > current_timestamp - interval  '%s minutes' GROUP BY application , label ORDER BY NUM_ERR DESC LIMIT %s",
+				.format(" SELECT application , label , COUNT(*) AS NUM_ERR FROM  CONTAINER_LOGS_DATA.BASIC_LOGS WHERE "
+						+ " substring(RESPONSECODE FROM 1 FOR 1) != '2' AND substring(RESPONSECODE FROM 1 FOR 1) != '3' AND timestamp > current_timestamp - interval  '%s minutes' GROUP BY application , label ORDER BY NUM_ERR DESC LIMIT %s",
 						minutos, ancho);
 
 		List<ErrorNowDTO> result = connection.read(ErrorNowDTO.class, sql);
@@ -306,20 +307,21 @@ public class RepositoryCollections {
 	public java.lang.Object[][] getErrorNowGraphic(String ancho,
 			String application) {
 
+		String sqlREsponse = "substring(RESPONSECODE FROM 1 FOR 1) != '2' AND substring(RESPONSECODE FROM 1 FOR 1) != '3' ";
 
 		String sql = String
 				.format(  "(SELECT COUNT(*) AS F_COUNT , label , 'min_1m' AS KEY "
-						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE RESPONSECODE != '200' AND application = ? AND a.timestamp > current_timestamp - interval  '1 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s )"
+						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '1 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s )"
 						+ " UNION "
 						+ "(SELECT COUNT(*) AS F_COUNT , label , 'min_10m' AS KEY"
-						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE RESPONSECODE != '200' AND application = ? AND a.timestamp > current_timestamp - interval  '10 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
+						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '10 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
 						+ " UNION "
 						+ "(SELECT COUNT(*) AS F_COUNT , label , 'min_2h' AS KEY "
-						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE RESPONSECODE != '200' AND application = ? AND a.timestamp > current_timestamp - interval  '125 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
+						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '125 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
 						+ " UNION "
 						+ "(SELECT COUNT(*) AS F_COUNT , label , 'min_24h' AS KEY "
-						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE RESPONSECODE != '200' AND application = ? AND a.timestamp > current_timestamp - interval  '1440 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)",
-						ancho, ancho, ancho, ancho);
+						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '1440 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)",
+						sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho);
 
 		// String sql = String
 		// .format("SELECT t1.name as MIN_1, time||'' AS time_MIN_1,'' as MIN_10, '' AS time_MIN_10,'' as MIN_60, '' AS time_MIN_60,'' as MIN_24h ,'' AS time_MIN_24h FROM                        "
