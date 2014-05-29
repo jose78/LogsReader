@@ -3,7 +3,7 @@ sudo -u postgres psql postgres
 sudo -u postgres createuser root
 
 sudo createdb readLogs
-
+sudo -u postgres psql reader_logs
 sudo psql readLogs
 
 SELECT datname FROM pg_database WHERE datistemplate = false;

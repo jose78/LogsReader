@@ -181,7 +181,7 @@ public class LogEntity {
 			
 	        Calendar cal = Calendar.getInstance();
 	        cal.setTimeInMillis(timeStamp.getTime());
-	        cal.add(Calendar.HOUR, 2);
+//	        cal.add(Calendar.HOUR, 2);
 	        this.timeStamp = new Timestamp(cal.getTime().getTime());
 	        
 			

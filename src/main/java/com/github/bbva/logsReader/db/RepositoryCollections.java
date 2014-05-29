@@ -17,9 +17,9 @@ import org.springframework.stereotype.Repository;
 
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
-import com.github.bbva.logsReader.dto.ResultDTO;
 import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
+import com.github.bbva.logsReader.view.ResultView;
 
 /**
  * 
@@ -415,7 +415,6 @@ public class RepositoryCollections {
 					}
 				}
 
-				ResultDTO result = new ResultDTO();
 				/*
 				 * Matrix genreada
 				 */

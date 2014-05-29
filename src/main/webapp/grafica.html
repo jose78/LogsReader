@@ -197,8 +197,8 @@
 														var json = JSON
 																.parse(dataJson);
 														console.log(json);
-														if (json.listDataDonut.length > 0)
-															drawDonut(json.listDataDonut);
+														if (json.donutView.donutData.length > 0)
+															drawDonut(json.donutView.donutData);
 														try {
 
 															var title = "Gráfica que recoge el Nº de llamadas por intervalo de milisegundos";
@@ -206,23 +206,23 @@
 
 															console
 																	.log("eje y : "
-																			+ json.axisY);
+																			+ json.barView.axisY);
 															console
 																	.log("eje x : "
-																			+ json.axisX);
+																			+ json.barView.axisX);
 
 															var data = google.visualization
-																	.arrayToDataTable(json.listData);
+																	.arrayToDataTable(json.barView.listData);
 
 															var options = {
 																title : title,
 																width : 800,
 																height : 400,
 																vAxis : {
-																	title : json.axisY
+																	title : json.barView.axisY
 																},
 																hAxis : {
-																	title : json.axisX
+																	title : json.barView.axisX
 																},
 																seriesType : "bars",
 																series : {
@@ -252,10 +252,10 @@
 																			.log("row:"
 																					+ selectedItem.row
 																					+ " -> "
-																					+ json.listData[selectedItem.row + 1][0]);
+																					+ json.barView.listData[selectedItem.row + 1][0]);
 
-																	intervalo = json.listData[selectedItem.row + 1][0];
-																	var array = json.listData[selectedItem.row + 1][0]
+																	intervalo = json.barView.listData[selectedItem.row + 1][0];
+																	var array = json.barView.listData[selectedItem.row + 1][0]
 																			.split('-');
 																	console.log("length: " +array);
 																	if (array.length <2) {

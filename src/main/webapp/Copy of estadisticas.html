@@ -1,0 +1,217 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+
+
+<link rel="stylesheet"
+	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<script src="resources/js/main_local.js"></script>
+
+
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+
+<script type="text/javascript">
+	google.load('visualization', '1', {
+		packages : [ 'Table', 'corechart' ]
+	});
+
+	var contRow = 0;
+	function executeServiceEst() {
+		console.log("starting executeServiceEst");
+
+		console.log("Fehca:" + fecha);
+
+		var fecha = '';
+		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
+		if (frecuenciaTiempo == 'diario')
+			fecha = '&fecha=' + document.getElementById('datepicker').value;
+		else
+			fecha = "&fecha=";
+
+		var percentil = document.getElementById('percentil').value;
+
+		var url = "/getEstadistica?frecuencia=" + frecuenciaTiempo + fecha
+				+ "&percentil=" + percentil;
+
+		console.log("URL: " + url);
+		callService(
+				url,
+				function(result) {
+					contRow = 0;
+					clean('tableServicesEst');
+					printResult(result);
+
+					var date = new Date;
+					var seconds = date.getSeconds();
+					var minutes = date.getMinutes();
+					var hour = date.getHours();
+					document.getElementById('refreshDate').innerHTML = "Última actualziación:"
+							+ hour + ":" + minutes + ":" + seconds;
+
+				});
+	}
+
+	$("document").ready(function() {
+		$("#historico").click(function() {
+			$('#datepicker').prop('disabled', true);
+			$('#datepicker').value = "";
+		});
+	});
+	$("document").ready(function() {
+		$("#diario").click(function() {
+			$('#datepicker').prop('disabled', false);
+		});
+	});
+
+	function printResult(dataJSON) {
+
+		var json = JSON.parse(dataJSON);
+
+		console.log(json);
+		console.log(json.tableView);
+
+		var data = new google.visualization.DataTable(json.tableView);
+
+		var table = document.getElementById('table');
+		var das = new google.visualization.Table(table);
+		console.log(das);
+		das.draw(data, {
+			'allowHtml' : true
+		});
+		google.visualization.events.addListener(das, 'select', function() {
+			console.log("eventoo lanzado.");
+			var selection = das.getSelection();
+			console.log(selection);
+			var i = selection[0].row;
+
+			console.log("row:" + i);
+
+			var max = json.tableView.rows[i].c[12].v;
+			var min = json.tableView.rows[i].c[11].v;
+
+			var q1 = json.tableView.rows[i].c[7].v;
+			var q2 = json.tableView.rows[i].c[8].v;
+			var q3 = json.tableView.rows[i].c[9].v;
+			var percentil = json.tableView.rows[i].c[10].v;
+			showPanel(json.tableView.rows[i].c[1].v,
+					json.tableView.rows[i].c[0].v, Number(max), Number(min),
+					q1, q2, q3, percentil);
+
+		});
+
+	}
+
+	function showPanel(service, application, max, min, q1, q2, q3, percentil) {
+
+		console.log(service);
+		console.log(application);
+		console.log(max);
+		console.log(min);
+		console.log(q1);
+		console.log(q2);
+		console.log(q3);
+		console.log(percentil);
+
+		var dataTable = google.visualization.arrayToDataTable([
+				[ '', 'X', 'Q1', 'Q3', 'MAX', 'Q2', 'Percentil' ],
+				[ '', , , , , {
+					v : q2,
+					f : ' Q2:' + q2
+				}, percentil ], [ '', {
+					v : min,
+					f : 'MIN:' + min
+				}, {
+					v : q1,
+					f : 'Q1:' + q1
+				}, {
+					v : q3,
+					f : ' Q3:' + q3
+				}, {
+					v : max,
+					f : ' MAX:' + max
+				}, {
+					v : q2,
+					f : ' Q2:' + q2
+				}, percentil ]
+		// Treat first row as data as well.
+		], false);
+
+		// Draw the chart.
+		var chart = new google.visualization.CandlestickChart(document
+				.getElementById('candlestick'));
+		chart.draw(dataTable, {
+			title: 'Gráfica del servicio '+service+'-'+application,
+			width : 600,
+			height : 400,
+			series : {
+				1 : {
+					type : "area"
+				},
+				2 : {
+					type : "area"
+				}
+			}
+		});
+
+	}
+</script>
+</head>
+<body id="body"
+	onload="executeServiceEst();setInterval('executeServiceEst()', 60000);">
+
+
+	<div id="form"
+		style="width: 350px; float: left; height: 180px; font-size: 10pt; color: #0089c9;">
+		<fieldset style="-webkit-border-radius: 10px;">
+			<legend style="font-size: 13pt;"> Configuración </legend>
+
+			<li>Percentil <input type="text" id="percentil" value="95"
+				class="inputs"></input>
+			</li>
+			<li>Fecha<br> <input type="radio" name="myRadios" id="historico"
+				checked="checked" value="historico" /> Histórico <br> <input
+				type="radio" name="myRadios" id="diario" value="diario" /> Diario<input
+				id="datepicker" name="datepicker" disabled="disabled" type="date"
+				style="width: 150px;"> <script type="text/javascript">
+					var date = new Date();
+
+					var day = date.getDate();
+					var month = date.getMonth() + 1;
+					var year = date.getFullYear();
+
+					if (month < 10)
+						month = "0" + month;
+					if (day < 10)
+						day = "0" + day;
+
+					var today = year + "-" + month + "-" + day;
+
+					$("#datepicker").attr("value", today);
+				</script>
+			</li>
+		</fieldset>
+	</div>
+	<div id="left" style="margin-left: 400px; height: 180px;">
+		<a class="btnActualizar" style="cursor: pointer;margin-left: 30%;margin-top: 10%"
+			onclick="executeServiceEst();">Actualizar</a>
+	</div>
+	
+
+
+	<div id="sites-canvas">
+
+		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
+
+		<div id='table'></div>
+		<div id='timeline'></div>
+		<div id='candlestick'></div>
+	</div>
+</body>
+</html>

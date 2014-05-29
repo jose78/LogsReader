@@ -103,9 +103,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.postgresql</groupId>
+			<groupId>postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.3-1101-jdbc41</version>
+			<version>9.1-901.jdbc4</version>
 		</dependency>
 
 		<!-- QuartzJobBean in spring-context-support.jar -->
@@ -137,7 +137,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version><!--$NO-MVN-MAN-VER$ -->
+				<version>2.3.2</version>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -164,4 +164,5 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	<packaging>war</packaging>
 </project>

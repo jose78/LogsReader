@@ -5,28 +5,9 @@
 <script
 	src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
-<script type="text/javascript">
-	var idOldOption = "op1";
-	$(function() {
-		$("li").click(function(e) {
-			e.preventDefault();
-			$("li").removeClass("active");
-			$(this).addClass("active");
-		});
-	});
 
-	function loadDiv(tab) {
-		if (idOldOption != null)
-			document.getElementById('div_' + idOldOption).setAttribute("style",
-					"visibility:hidden;");
-
-		idOldOption = tab.id;
-		document.getElementById('div_' + idOldOption).setAttribute("style",
-				"visibility:visible;");
-	}
-</script>
 </head>
-<body style="background-color: #E0E6F1;" onload="javascript:window.location.replace('index2.html#tab1');">
+<body>
 
 
 
@@ -35,24 +16,24 @@
 
 		<section id="tab1">
 			<h2>
-				<a href="#tab1" onclick="loadDiv(this)">Tab 1</a>
+				<a href="#tab1">Paco</a>
 			</h2>
-				<object type="text/html" data="main.html" width="99%" height="99%"> </object>
+				<object type="text/html" data="Copy of main.html" width="99%" height="99%"> </object>
 			
 		</section>
 
 		<section id="tab2">
 			<h2>
-				<a href="#tab2">Tab 2</a>
+				<a href="#tab2">Felipe</a>
 			</h2>
-				<object type="text/html" data="errorNow.html" width="99%" height="99%"> </object>
+				<object type="text/html" data="Copy of errorNow.html" width="99%" height="99%"> </object>
 		</section>
 
 		<section id="tab3">
 			<h2>
-				<a href="#tab3">Tab 3</a>
+				<a href="#tab3">Samuel</a>
 			</h2>
-			<object type="text/html" data="estadisticas.html" width="99%" height="99%"> </object>
+			<object type="text/html" data="Copy of estadisticas.html" width="99%" height="99%"> </object>
 		</section>
 
 	</article>

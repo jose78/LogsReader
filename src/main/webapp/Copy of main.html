@@ -1,0 +1,189 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+
+
+
+<link rel="stylesheet" type="text/css" href="resources/css/style.css">
+
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+<script src="resources/js/main_local.js"></script>
+
+
+<script type="text/javascript">
+	google.load('visualization', '1', {
+		packages : [ 'table' ]
+	});
+	function executeService() {
+
+		console.log("starting executeSErvice");
+
+		var fecha = document.getElementById('datepicker').value;
+		var frecuenciaTiempo = $('input[name=myRadios]:checked').val();
+		var timeout = document.getElementById('timeout').value;
+		console.log("frecuenciaTiempo: " + frecuenciaTiempo + " fecha:" + fecha
+				+ " timeOut:" + timeout);
+
+		if (frecuenciaTiempo == null) {
+			frecuenciaTiempo = "historico";
+		}
+
+		console.log("Fehca:" + fecha);
+
+		var url = "/ListServices?frecuencia=" + frecuenciaTiempo + "&fecha="
+				+ fecha + "&timeout=" + timeout;
+
+		console.log("URL: " + url);
+		callService(
+				url,
+				function(result) {
+					clean('tableServices');
+					printResult(result);
+
+					var date = new Date;
+					var seconds = date.getSeconds();
+					var minutes = date.getMinutes();
+					var hour = date.getHours();
+					document.getElementById('refreshDate').innerHTML = "Última actualziación:"
+							+ hour + ":" + minutes + ":" + seconds;
+
+				});
+	}
+
+	$("document").ready(function() {
+		$("#historico").click(function() {
+			$('#datepicker').prop('disabled', true);
+			$('#datepicker').value = "";
+		});
+	});
+	$("document").ready(function() {
+		$("#diario").click(function() {
+			$('#datepicker').prop('disabled', false);
+		});
+	});
+
+	function printResult(dataJSON) {
+
+		var json = JSON.parse(dataJSON);
+
+		console.log(dataJSON);
+
+		var data = new google.visualization.DataTable(json);
+
+		var table = document.getElementById('table');
+		var das = new google.visualization.Table(table);
+		console.log(das);
+		das.draw(data, {
+			'allowHtml' : true
+		});
+		google.visualization.events.addListener(das, 'select', function() {
+			console.log("eventoo lanzado.");
+			var selection = das.getSelection();
+			console.log(selection);
+			var i = selection[0].row;
+			showPanel(json.rows[i].c[0].v, json.rows[i].c[1].v);
+
+		});
+
+	}
+
+	function showPanel(nameService, application) {
+		console.log("showPanel:" + nameService + "   - " + application);
+
+		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
+		var fecha = document.getElementById('datepicker').value;
+
+		window.open("grafica.html?service=" + nameService + '&application='
+				+ application + '&to=25&fecha=' + fecha + "&frecuenciaTiempo="
+				+ frecuenciaTiempo, "MsgWindow" + nameService,
+				"width=800, height=700");
+
+	}
+	/*
+	 * .datagrid table thead th {
+	 background: #1c5ba2;
+	 background: -moz-linear-gradient(center top, #006699 5%, #1c5ba2 100%);
+	 filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#1c5ba2');
+	 background-color: #006699;
+	 color: #FFFFFF;
+	 font-size: 15px;
+	 font-weight: bold;
+	 border-left: 1px solid #0070A8;
+	 }
+	 */
+	function addRow(table, nameService, application, aggregate) {
+
+		var rows = table.rows;
+		var rowCount = rows.length;
+
+		var row = table.insertRow(rowCount);
+		row.height = "30px";
+		row.id = "row_" + nameService + "_" + application;
+		row.onclick = function() {
+			console.log("Pulsado " + nameService);
+			showPanel(nameService, application);
+		};
+
+		return row;
+	}
+</script>
+</head>
+<body id="body"
+	onload="executeService();setInterval('executeService()', 60000);">
+
+
+	<div id="form"
+		style="width: 350px; float: left; height: 180px; font-size: 10pt; color: #0089c9;">
+		<fieldset style="-webkit-border-radius: 10px;">
+			<legend style="font-size: 13pt;">
+				Configuración </legend>
+
+			<li>Time Out<input type="text" class="inputs" id="timeout"
+				value="0" onchange="executeService();"></li>
+			<li>Fecha:<br> <input type="radio" name="myRadios" id="historico"
+						checked="checked" value="historico" /> Histórico <br> <input
+						type="radio" name="myRadios" id="diario" value="diario" /> Diario<input
+						id="datepicker" name="datepicker"   disabled="disabled" type="date"
+						style="width: 150px;">
+					<script type="text/javascript">
+						var date = new Date();
+
+						var day = date.getDate();
+						var month = date.getMonth() + 1;
+						var year = date.getFullYear();
+
+						if (month < 10)
+							month = "0" + month;
+						if (day < 10)
+							day = "0" + day;
+
+						var today = year + "-" + month + "-" + day;
+
+						$("#datepicker").attr("value", today);
+					</script>
+			
+			</li>
+
+		</fieldset>
+	</div>
+	<div id="left" style="margin-left: 400px; height: 180px;">
+		<a class="btnActualizar" style="cursor: pointer;margin-left: 30%;margin-top: 10%"
+			onclick="executeService();">Actualizar</a>
+	</div>
+
+
+	<div id="sites-canvas">
+
+		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
+
+		<div id='table'></div>
+
+
+	</div>
+
+</body>
+</html>
