@@ -102,6 +102,7 @@
 				+ frecuenciaTiempo, "MsgWindow" + nameService,
 				"width=800, height=700");
 
+		document.getElementById("popUp").setattribute("visibility","visible");
 	}
 	/*
 	 * .datagrid table thead th {
@@ -139,39 +140,39 @@
 	<div id="form"
 		style="width: 350px; float: left; height: 180px; font-size: 10pt; color: #0089c9;">
 		<fieldset style="-webkit-border-radius: 10px;">
-			<legend style="font-size: 13pt;">
-				Configuración </legend>
+			<legend style="font-size: 13pt;"> Configuración </legend>
 
 			<li>Time Out<input type="text" class="inputs" id="timeout"
 				value="0" onchange="executeService();"></li>
-			<li>Fecha:<br> <input type="radio" name="myRadios" id="historico"
-						checked="checked" value="historico" /> Histórico <br> <input
-						type="radio" name="myRadios" id="diario" value="diario" /> Diario<input
-						id="datepicker" name="datepicker"   disabled="disabled" type="date"
-						style="width: 150px;">
-					<script type="text/javascript">
-						var date = new Date();
+			<li>Fecha:<br> <input type="radio" name="myRadios"
+				id="historico" checked="checked" value="historico" /> Histórico <br>
+				<input type="radio" name="myRadios" id="diario" value="diario" />
+				Diario<input id="datepicker" name="datepicker" disabled="disabled"
+				type="date" style="width: 150px;"> <script
+					type="text/javascript">
+					var date = new Date();
 
-						var day = date.getDate();
-						var month = date.getMonth() + 1;
-						var year = date.getFullYear();
+					var day = date.getDate();
+					var month = date.getMonth() + 1;
+					var year = date.getFullYear();
 
-						if (month < 10)
-							month = "0" + month;
-						if (day < 10)
-							day = "0" + day;
+					if (month < 10)
+						month = "0" + month;
+					if (day < 10)
+						day = "0" + day;
 
-						var today = year + "-" + month + "-" + day;
+					var today = year + "-" + month + "-" + day;
 
-						$("#datepicker").attr("value", today);
-					</script>
-			
+					$("#datepicker").attr("value", today);
+				</script>
+
 			</li>
 
 		</fieldset>
 	</div>
 	<div id="left" style="margin-left: 400px; height: 180px;">
-		<a class="btnActualizar" style="cursor: pointer;margin-left: 30%;margin-top: 10%"
+		<a class="btnActualizar"
+			style="cursor: pointer; margin-left: 30%; margin-top: 10%"
 			onclick="executeService();">Actualizar</a>
 	</div>
 
@@ -181,8 +182,6 @@
 		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
 
 		<div id='table'></div>
-
-
 	</div>
 
 </body>

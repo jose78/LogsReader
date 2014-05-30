@@ -208,7 +208,7 @@ public class RepositoryCollections {
 		String sqlFecha = "";
 		if(fecha != null) 
 			sqlFecha = String.format(
-				"WHERE '%s' = to_char(timestamp, 'yyyy-mm-DD')", fecha);
+				"WHERE '%s' = to_char(timestamp, 'yyyy-mm-DD') AND (RESPONSECODE  LIKE '2%' OR RESPONSECODE LIKE '3%') ", fecha);
 		
 		
 		StringBuilder sql = new StringBuilder();

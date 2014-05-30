@@ -173,19 +173,29 @@ public class LogReaderControler {
 				Integer.parseInt(ancho), Integer.parseInt(minutos));
 
 		List<RowTableView> lstRow = new ArrayList<RowTableView>();
-		for (ErrorNowDTO errorNowDTO : resultDB) {
-			RowTableView rowView= new RowTableView();
-			rowView.addCol(errorNowDTO.getApplication() , errorNowDTO.getLabel() , errorNowDTO.getNumberOfError());
-			lstRow.add(rowView);
+
+		if (resultDB.size() > 0) {
+			for (ErrorNowDTO errorNowDTO : resultDB) {
+				RowTableView rowView = new RowTableView();
+				rowView.addCol(errorNowDTO.getApplication(),
+						errorNowDTO.getLabel(), errorNowDTO.getNumberOfError());
+				lstRow.add(rowView);
+			}
+		} else {
+			for (int index = 0; index <= Integer.parseInt(ancho); index++) {
+				RowTableView rowView = new RowTableView();
+				rowView.addCol("-", "-", 0);
+				lstRow.add(rowView);
+			}
 		}
-		
-		List<ColumnTableView> lstColumn= new ArrayList<ColumnTableView>();
+
+		List<ColumnTableView> lstColumn = new ArrayList<ColumnTableView>();
 		lstColumn.add(new ColumnTableView("Aplicación", "string"));
 		lstColumn.add(new ColumnTableView("Servicio", "string"));
 		lstColumn.add(new ColumnTableView("Nº de errores", "number"));
-		
+
 		ResultTableView tableView = new ResultTableView(lstColumn, lstRow);
-		
+
 		ResultView view = new ResultView();
 		view.setTableView(tableView);
 		return view;
@@ -261,7 +271,8 @@ public class LogReaderControler {
 
 			RowTableView rowView = new RowTableView();
 
-			rowView.addCol(infoServicesDTO.getApplication(),
+			rowView.addCol(
+					infoServicesDTO.getApplication(),
 					infoServicesDTO.getService(),
 					array(infoServicesDTO.getAggregate(), "ms"),
 					infoServicesDTO.getStandaDesviation(),
@@ -269,12 +280,13 @@ public class LogReaderControler {
 					array(infoServicesDTO.getFailDown(), "%"),
 					array(infoServicesDTO.getFailUp(), "%")
 
-					, array(infoServicesDTO.getQ1(), "ms"),
+					,
+					array(infoServicesDTO.getQ1(), "ms"),
 					array(infoServicesDTO.getMedianColum(), "ms"),
 					array(infoServicesDTO.getQ3(), "ms"),
-					array(Integer.parseInt(infoServicesDTO.getPercentile()), "ms"),
-					infoServicesDTO.getMin(),
-					infoServicesDTO.getMax());
+					array(Integer.parseInt(infoServicesDTO.getPercentile()),
+							"ms"), infoServicesDTO.getMin(), infoServicesDTO
+							.getMax());
 			lstRow.add(rowView);
 
 		}
