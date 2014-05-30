@@ -158,7 +158,7 @@ public class LogReaderControler {
 			@RequestParam(value = "application") String application) {
 		Object[][] resultDB = repository.getErrorNowGraphic(ancho, application);
 
-		ResultBarView result = new ResultBarView("Tiempos chequeados.",
+		ResultBarView result = new ResultBarView("Servicios.",
 				"Nº de errores.", resultDB);
 
 		return result;

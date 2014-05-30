@@ -12,7 +12,7 @@ import com.github.bbva.logsReader.annt.DTO;
  * 
  */
 @DTO
-public class AppendFilesDto {
+public class AppendFilesDto implements Comparable<AppendFilesDto>{
 
 	private File[] files;
 	private String environment;
@@ -28,5 +28,19 @@ public class AppendFilesDto {
 
 	public File[] getFiles() {
 		return files;
+	}
+
+	@Override
+	public int compareTo(AppendFilesDto o) {
+		
+		int res= files.length - o.getFiles().length;
+		for (int index= 0; res == 0 && index <files.length; index++) {
+			res = getFiles()[index].getName().compareTo(o.getFiles()[index].getName());
+		}
+		
+		if(res != 0)
+			return res;
+		
+		return  getEnvironment().compareTo(o.getEnvironment());
 	}
 }

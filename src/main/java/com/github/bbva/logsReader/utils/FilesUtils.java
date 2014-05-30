@@ -121,9 +121,8 @@ public class FilesUtils {
 		} finally {
 
 			log.info(String.format(
-					"In the file %s:Rows append %s OK and %s lines with ERROR",
-					file.getName(), ((cont - numberOfLine) - contError),
-					contError));
+					"In the file %s:Initial %s Rows append %s OK and %s lines with ERROR",
+					file.getName(), numberOfLine , cont , contError));
 			
 			if (fileEnvironmentEntity != null) {
 				fileEnvironmentEntity.setNumberOfLine(cont);

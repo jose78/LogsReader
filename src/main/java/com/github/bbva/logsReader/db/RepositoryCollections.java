@@ -307,7 +307,7 @@ public class RepositoryCollections {
 	public java.lang.Object[][] getErrorNowGraphic(String ancho,
 			String application) {
 
-		String sqlREsponse = "substring(RESPONSECODE FROM 1 FOR 1) != '2' AND substring(RESPONSECODE FROM 1 FOR 1) != '3' ";
+		String sqlREsponse = " RESPONSECODE NOT LIKE '2%' AND  RESPONSECODE NOT LIKE '3%' ";
 
 		String sql = String
 				.format(  "(SELECT COUNT(*) AS F_COUNT , label , 'min_1m' AS KEY "
@@ -320,8 +320,11 @@ public class RepositoryCollections {
 						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '125 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
 						+ " UNION "
 						+ "(SELECT COUNT(*) AS F_COUNT , label , 'min_24h' AS KEY "
-						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '1440 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)",
-						sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho);
+						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '1440 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
+						+ " UNION "
+		+ "(SELECT COUNT(*) AS F_COUNT , label , 'histórico' AS KEY "
+		+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? GROUP BY LABEL  order by F_COUNT DESC limit %s)",
+		sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho);
 
 		// String sql = String
 		// .format("SELECT t1.name as MIN_1, time||'' AS time_MIN_1,'' as MIN_10, '' AS time_MIN_10,'' as MIN_60, '' AS time_MIN_60,'' as MIN_24h ,'' AS time_MIN_24h FROM                        "
@@ -356,7 +359,7 @@ public class RepositoryCollections {
 
 		RowMapper<Object[][]> maper = new RowMapper<Object[][]>() {
 
-			String[] keys = { "min_1m", "min_10m", "min_2h", "min_24h" };
+			String[] keys = { "min_1m", "min_10m", "min_2h", "min_24h" ,"histórico"};
 			Set<String> heads = new TreeSet<String>();
 			Map<String, Map<String, Integer>> result = new TreeMap<String, Map<String, Integer>>();
 			Object[][] matrix = null;
@@ -422,7 +425,7 @@ public class RepositoryCollections {
 			}
 		};
 		List<Object[][]> lstResult = connection.read(maper, Object[][].class,
-				sql, application, application, application, application);
+				sql, application, application, application, application,application);
 
 		if (lstResult.size() > 0)
 			return lstResult.get(0);

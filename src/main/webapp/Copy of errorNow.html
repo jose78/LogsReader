@@ -62,7 +62,9 @@
 	function drawGraph(dataJson, application) {
 
 		var json = JSON.parse(dataJson);
+		console.log("Application:" + application);
 		console.log(json);
+		console.log(json.listData);
 
 		try {
 
@@ -76,8 +78,8 @@
 
 			var options = {
 				title : title,
-				width : 800,
-				height : 400,
+				width : 600,
+				height : 300,
 				vAxis : {
 					title : json.axisY
 				},
@@ -89,7 +91,7 @@
 			};
 
 			var chart = new google.visualization.ComboChart(document
-					.getElementById('visualization' + application));
+					.getElementById('visualization_' + application));
 			// The select handler. Call the chart's getSelection() method
 			function selectHandler() {
 				var selectedItem = chart.getSelection()[0];
@@ -192,6 +194,9 @@
 		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
 
 		<div id='table'></div>
+		
+		<div id='visualization_BUZZ'></div>
+		<div id='visualization_NXT/WALLET'></div>
 
 
 	</div>
