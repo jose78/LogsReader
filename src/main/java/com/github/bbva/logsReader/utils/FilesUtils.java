@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.github.bbva.logsReader.entity.LogEntity;
@@ -28,8 +29,8 @@ public class FilesUtils {
 
 	private static Logger log = Logger.getLogger(FilesUtils.class);
 
-//	@Value("${logReader.csv.heds}")
-	private String[] head = {"timeStamp","elapsed","label","responseCode","responseMessage","threadName","dataType","success","failureMessage","bytes","Latency"};;
+	@Value("${logReader.csv.heads}")
+	private String[] head ;
 
 	/**
 	 * Map a line in a <code>LogDTO</code> object.
