@@ -44,6 +44,7 @@ public class CRUD implements DBConnection {
 	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_PASSWORD'] }") String dbPass;
 	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_HOST'] }") String dbHost;
 	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_PORT'] }") String dbPort;
+	private @Value("#{ environment['PGDATABASE']}") String dbName;
 	private @Value("${logReader.db.autoCommit}") Boolean dbAutoCommit;
 	private @Value("${logReader.db.driver}") String dbDriver;
 
@@ -58,11 +59,9 @@ public class CRUD implements DBConnection {
 	private Connection writer;
 
 	public void init() {
-		String dbUrl = String.format("jdbc:postgresql://%s:%s/app", dbHost,
-				dbPort);
+		String dbUrl = String.format("jdbc:postgresql://%s:%s/%s", dbHost, dbPort, dbName);
 		log.info("-------- PostgreSQL JDBC Connection Testing ------------");
-		log.info(String.format("     -> Usuario:%s\n     ->nURL:%s", dbUser,
-				dbUrl));
+		log.info(String.format("     -> Usuario:%s\n     ->nURL:%s", dbUser, dbUrl));
 
 		try {
 			Class.forName(dbDriver);
