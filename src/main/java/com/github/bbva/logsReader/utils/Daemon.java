@@ -3,16 +3,14 @@
  */
 package com.github.bbva.logsReader.utils;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
-import com.github.bbva.logsReader.dto.AppendFilesDto;
+import com.github.bbva.logsReader.db.DBConnection;
+import com.github.bbva.logsReader.entity.LogEntity;
+import com.github.bbva.logsReader.utils.enums.EnumSource;
 
 /**
  * @author <a href="mailto:jose.clavero.contractor@bbva.com">jose.clavero -
@@ -22,12 +20,11 @@ import com.github.bbva.logsReader.dto.AppendFilesDto;
 public class Daemon {
 
 	private static Logger log = Logger.getLogger(Daemon.class);
-	
+
 	private Boolean flagStart = true;
-	
-	@Value("${com.bbva-logReader.pathfiles.one}")
-	private String path ;
-	private String environment = "one";
+
+	@Autowired
+	DBConnection connection;
 
 	@Autowired
 	FilesUtils filesUtils;
@@ -39,49 +36,65 @@ public class Daemon {
 		}
 	}
 
-	
 	protected void destroy() throws Throwable {
 		// TODO Auto-generated method stub
 		log.info("finalize DAEMON.");
 		super.finalize();
 	}
+
 	synchronized private boolean inExecution() {
 		semaphore = false;
 		log.info("Executing DAEMON.");
-
-		/*
-		 * retrieve the currents files
-		 */
-		File directory = new File(path);
-		File[] files= directory.listFiles(new FileFilter());
-
-		filesUtils.loadFiles(new AppendFilesDto(files, environment));
 		
+		connection.openWriter();
+		
+		for (EnumSource source : EnumSource.values()) {
+
+			if (source.isExecutable()) {
+				try {
+					List<String> lstLinesBuzz = filesUtils.tail(
+							source.getFileBuzz(), source.getNumLines());
+					saveData(lstLinesBuzz, source.APP_BUZZ, source.name());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+
+				try {
+					List<String> lstLinesNxt = filesUtils.tail(
+							source.getFileNxt(), source.getNumLines());
+					saveData(lstLinesNxt, source.APP_NXT, source.name());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				source.clear();
+			}
+		}
+		connection.closeWriter();
 		log.info("END DAEMON.");
 		return true;
 	}
-	
-	public Boolean isStartUpDaemon(){
+
+	String lineBuzzOne= "";
+	private void saveData(List<String> lstLines, String application, String env) {
+		for (String line : lstLines) {
+			try {
+				if (line.length() > 0) {
+					
+					LogEntity entity = filesUtils.loadData(line.split(","),	application, env);
+					connection.insert(entity);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public Boolean isStartUpDaemon() {
 		return flagStart;
 	}
 
 	public void setStartUpDaemon(Boolean flagStart) {
 		this.flagStart = flagStart;
 	}
-	private class FileFilter implements FilenameFilter {
-
-		String currentDate = null;
-
-		public FileFilter() {
-			SimpleDateFormat sfd = new SimpleDateFormat("yyyyMMdd");
-			currentDate = sfd.format(new Date(System.currentTimeMillis()));
-		}
-
-		@Override
-		public boolean accept(File dir, String name) {
-			// TODO Auto-generated method stub
-			return name.contains(currentDate) && !name.contains("xml");
-		}
-	}
-	
 }

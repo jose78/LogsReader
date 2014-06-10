@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +20,6 @@ import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.TuplaDto;
 import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
-import com.github.bbva.logsReader.view.ResultView;
 
 /**
  * 
@@ -35,7 +35,8 @@ public class RepositoryCollections {
 	private static Logger log = Logger.getLogger(RepositoryCollections.class);
 
 	@Autowired
-	DBConnection connection;
+	@Qualifier("crudBean")
+	private DBConnection connection;
 
 //	/**
 //	 * 

@@ -2,20 +2,19 @@ package com.github.bbva.logsReader.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import com.github.bbva.logsReader.db.DBConnection;
-import com.github.bbva.logsReader.db.RepositoryCollections;
-import com.github.bbva.logsReader.dto.AppendFilesDto;
-import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
 import com.github.bbva.logsReader.entity.LogEntity;
 
 /**
@@ -24,133 +23,23 @@ import com.github.bbva.logsReader.entity.LogEntity;
  *         Neoris</a>
  * 
  */
+@Component
 public class FilesUtils {
 
 	private static Logger log = Logger.getLogger(FilesUtils.class);
 
-	@Value("${com.bbva-logReader.csv.heds}")
-	private String[] head;
-
-	// @Value("${com.bbva-logReader.pathfiles.ten}")
-	// private String pathFilesTenMinut;
-	//
-	// @Value("${com.bbva-logReader.pathfiles.one}")
-	// private String pathFilesOneMinut;
-
-	private java.util.Queue<AppendFilesDto> queue = null;
-
-	@Autowired
-	private RepositoryCollections repository;
-	@Autowired
-	private DBConnection connection;
+//	@Value("${logReader.csv.heds}")
+	private String[] head = {"timeStamp","elapsed","label","responseCode","responseMessage","threadName","dataType","success","failureMessage","bytes","Latency"};;
 
 	/**
-	 * This method will be loaded automatcly when start the application-
-	 */
-	@SuppressWarnings("unused")
-	private void init() {
-		queue = new PriorityQueue<AppendFilesDto>();
-		// containerNameFilesLoaded = new TreeSet<String>();
-		// containerNameFilesLoaded.addAll(connection.read(String.class,
-		// "SELECT NAME FROM CONTAINER_LOGS_DATA.FILES_LOADED"));
-		// log.info(String.format("Cargados inicialmente %s archivos",
-		// containerNameFilesLoaded.size()));
-	}
-
-	public void loadFiles(AppendFilesDto appendFilesDto) {
-
-		queue.add(appendFilesDto);
-
-		loadFilesFromQueue();
-
-	}
-
-	private synchronized void loadFilesFromQueue() {
-
-		while (!queue.isEmpty()) {
-
-			/*
-			 * Rtrieve and remove the head of the queue
-			 */
-			AppendFilesDto appendFilesDto = queue.poll();
-			for (File file : appendFilesDto.getFiles()) {
-				load(file, appendFilesDto.getEnvironment());
-			}
-		}
-	}
-
-	private void load(File file, String environment) {
-
-		String fileName = null;
-		FileEnvironmentEntity fileEnvironmentEntity = repository
-				.getFileEnvironmentEntity(file, environment);
-
-		Integer numberOfLine = 1;
-		Integer cont = 0;
-		Integer contError = 0;
-		BufferedReader br = null;
-
-		try {
-			if (fileEnvironmentEntity != null)
-				numberOfLine = fileEnvironmentEntity.getNumberOfLine();
-
-			br = new BufferedReader(new FileReader(file));
-			String line = null;
-			
-			while ((line = br.readLine()) != null) {
-
-				if (cont >= numberOfLine) {
-					try {
-						LogEntity logEntity = loadData(head, line.split(","),
-								file.getName(), environment);
-						connection.insert(logEntity);
-					} catch (Exception e) {
-						contError++;
-						log.error(String
-								.format("file:[%s] environment:[%s] Nº line:[%s] Error:[%s] ",
-										file.getName(), environment, cont,
-										line, e.getMessage()));
-					}
-				}
-				cont++;
-
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-
-			log.info(String.format(
-					"In the file %s:Initial %s Rows append %s OK and %s lines with ERROR",
-					file.getName(), numberOfLine , cont , contError));
-			
-			if (fileEnvironmentEntity != null) {
-				fileEnvironmentEntity.setNumberOfLine(cont);
-				connection.update(fileEnvironmentEntity);
-			} else {
-				connection.insert(new FileEnvironmentEntity(null, file
-						.getName(), environment, cont));
-			}
-
-			
-			try {
-				br.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Map each line in a <code>LogDTO</code> object.
+	 * Map a line in a <code>LogDTO</code> object.
 	 * 
-	 * @param head
-	 *            array with the name of the column
 	 * @param source
-	 *            array wth the value.
-	 * @return Object.
+	 * @param application
+	 * @param environment
+	 * @return
 	 */
-	private LogEntity loadData(String[] head, String[] source, String pathFile,
+	public LogEntity loadData(String[] source, String application,
 			String environment) {
 		if (source.length != head.length)
 			throw new LogsReaderException("head:[%s] source:[%s]", head.length,
@@ -159,9 +48,103 @@ public class FilesUtils {
 		for (int index = 0; index < source.length; index++) {
 			data.put(head[index], source[index]);
 		}
-		data.put("application", pathFile.contains("enpp2") ? "BUZZ"
-				: "NXT/WALLET");
+		data.put("application", application);
 		data.put("environment", environment);
 		return new LogEntity(data);
+	}
+
+	private class BackwardsFileInputStream extends InputStream {
+		public BackwardsFileInputStream(File file) throws IOException {
+			assert (file != null) && file.exists() && file.isFile()
+					&& file.canRead();
+
+			raf = new RandomAccessFile(file, "r");
+			currentPositionInFile = raf.length();
+			currentPositionInBuffer = 0;
+		}
+
+		public int read() throws IOException {
+			if (currentPositionInFile <= 0)
+				return -1;
+			if (--currentPositionInBuffer < 0) {
+				currentPositionInBuffer = buffer.length;
+				long startOfBlock = currentPositionInFile - buffer.length;
+				if (startOfBlock < 0) {
+					currentPositionInBuffer = buffer.length
+							+ (int) startOfBlock;
+					startOfBlock = 0;
+				}
+				raf.seek(startOfBlock);
+				raf.readFully(buffer, 0, currentPositionInBuffer);
+				return read();
+			}
+			currentPositionInFile--;
+			return buffer[currentPositionInBuffer];
+		}
+
+		public void close() throws IOException {
+			raf.close();
+		}
+
+		private final byte[] buffer = new byte[4096];
+		private final RandomAccessFile raf;
+		private long currentPositionInFile;
+		private int currentPositionInBuffer;
+	}
+
+	public List<String> head(File file, String encoding, int numberOfLinesToRead)
+			throws IOException {
+		assert (file != null) && file.exists() && file.isFile()
+				&& file.canRead();
+		assert numberOfLinesToRead > 0;
+		assert encoding != null;
+
+		LinkedList<String> lines = new LinkedList<String>();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				new FileInputStream(file), encoding));
+		for (String line = null; (numberOfLinesToRead-- > 0)
+				&& (line = reader.readLine()) != null;) {
+			lines.addLast(line);
+		}
+		reader.close();
+		return lines;
+	}
+
+	public List<String> tail(File file, int numberOfLinesToRead)
+			throws IOException {
+		return tail(file, "utf-8", numberOfLinesToRead);
+	}
+
+	public List<String> tail(File file, String encoding, int numberOfLinesToRead)
+			throws IOException {
+		assert (file != null) && file.exists() && file.isFile()
+				&& file.canRead();
+		assert numberOfLinesToRead > 0;
+		assert (encoding != null) && encoding.matches("(?i)(utf8).*");
+
+		LinkedList<String> lines = new LinkedList<String>();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				new BackwardsFileInputStream(file), encoding));
+		for (String line = null; (numberOfLinesToRead-- > 0)
+				&& (line = reader.readLine()) != null;) {
+			// Reverse the order of the characters in the string
+			char[] chars = line.toCharArray();
+			for (int j = 0, k = chars.length - 1; j < k; j++, k--) {
+				char temp = chars[j];
+				chars[j] = chars[k];
+				chars[k] = temp;
+			}
+			lines.addFirst(new String(chars));
+		}
+		reader.close();
+		return lines;
+	}
+
+	public void clear() {
+		try {
+			new File("file.tmp").delete();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

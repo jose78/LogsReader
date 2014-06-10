@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <head>
 <script type="text/javascript">
-	var oldElection = 'index.html#tab1';
+	var oldElection = 'tabPanel.html#tab1';
 	function loadPage(selection) {
 		console.log(selection);
 		var component = document.getElementById('internalPnl');
@@ -25,7 +25,7 @@
 
 		<p  style="position: relative;  left: 30px; top: 40px; color:#F2F2F2; font-family: arial,sans-serif!important;">
 
-			<a onclick="loadPage('index.html#tab1');">Estadísticas JMETER</a> <br> 
+			<a onclick="loadPage('tabPanel.html#tab1');">Estadísticas JMETER</a> <br> 
 			<a onclick="loadPage('http://topic-alpha-topicthunder0.aws-oregon.innotechapp.com/#/panel')">Topic
 				Thunder</a>
 		</p>
@@ -34,7 +34,7 @@
 
 	<div
 		style="width: 75%; margin-left: 25%; height: 100%; background-color: #F2F2F2; border-color: RED;">
-		<object id="internalPnl" type="text/html" data="index.html#tab1"
+		<object id="internalPnl" type="text/html" data="tabPanel.html#tab1"
 			style="border: 2px;" width="100%" height="100%"></object>
 	</div>
 </body>

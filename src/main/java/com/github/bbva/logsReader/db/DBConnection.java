@@ -52,6 +52,9 @@ public interface DBConnection {
 	 */
 	public abstract <T> T insert(T data);
 	
+	public void openWriter();
+	
+	public void closeWriter();
 	
 //	/**
 //	 * Commit the transactions.

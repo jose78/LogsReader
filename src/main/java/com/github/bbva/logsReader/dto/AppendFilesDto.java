@@ -17,6 +17,7 @@ public class AppendFilesDto implements Comparable<AppendFilesDto>{
 	private File[] files;
 	private String environment;
 
+
 	public AppendFilesDto(File[] files, String environment) {
 		this.files = files;
 		this.environment = environment;

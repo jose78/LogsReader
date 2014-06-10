@@ -4,7 +4,6 @@
 package com.github.bbva.logsReader.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -18,6 +17,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -40,31 +40,30 @@ public class CRUD implements DBConnection {
 
 	private static Logger log = Logger.getLogger(CRUD.class);
 
-	@Value("${com.github.bbva.logReader.autoCommit}")
-	private Boolean dbAutoCommit;
-	@Value("${com.github.bbva.logReader.db.driver}")
-	private String dbDriver;
-	@Value("${com.github.bbva.logReader.db.url}")
-	private String dbUrl;
-	@Value("${com.github.bbva.logReader.db.user}")
-	private String dbUser;
-	@Value("${com.github.bbva.logReader.db.pass}")
-	private String dbPass;
-
-	private Connection connection;
+	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_USERNAME'] }") String dbUser;
+	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_PASSWORD'] }") String dbPass;
+	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_HOST'] }") String dbHost;
+	private @Value("#{ environment['OPENSHIFT_POSTGRESQL_DB_PORT'] }") String dbPort;
+	private @Value("${logReader.db.autoCommit}") Boolean dbAutoCommit;
+	private @Value("${logReader.db.driver}") String dbDriver;
 
 	@Autowired
 	private ClassUtils classUtils;
 
+	@Qualifier("dataSource")
 	@Autowired
 	private DriverManagerDataSource ds;
 
+	private Connection reader;
+	private Connection writer;
+
 	public void init() {
+		String dbUrl = String.format("jdbc:postgresql://%s:%s/app", dbHost,
+				dbPort);
 		log.info("-------- PostgreSQL JDBC Connection Testing ------------");
-		ds.setDriverClassName(dbDriver);
-		ds.setPassword(dbPass);
-		ds.setUrl(dbUrl);
-		ds.setUsername(dbUser);
+		log.info(String.format("     -> Usuario:%s\n     ->nURL:%s", dbUser,
+				dbUrl));
+
 		try {
 			Class.forName(dbDriver);
 			log.info("PostgreSQL JDBC Driver Registered!");
@@ -74,42 +73,13 @@ public class CRUD implements DBConnection {
 			e.printStackTrace();
 			return;
 		}
-		try {
-			connection = DriverManager.getConnection(dbUrl, dbUser, dbPass);
-			connection.setAutoCommit(dbAutoCommit);
 
-		} catch (SQLException e) {
-			log.error("Connection Failed! Check output console");
-			e.printStackTrace();
+		ds.setDriverClassName(dbDriver);
+		ds.setPassword(dbPass);
+		ds.setUrl(dbUrl);
+		ds.setUsername(dbUser);
 
-		}
 	}
-
-	//
-	// try {
-	// Class.forName(dbDriver);
-	// log.info("PostgreSQL JDBC Driver Registered!");
-	// } catch (ClassNotFoundException e) {
-	// log.error("Where is your PostgreSQL JDBC Driver? "
-	// + "Include in your library path!", e);
-	// e.printStackTrace();
-	// return;
-	// }
-	// }
-	// private Connection createConnection() {
-	//
-	// try {
-	// Connection connection = DriverManager.getConnection(dbUrl,
-	// dbUser,dbPass);
-	// connection.setAutoCommit(dbAutoCommit);
-	// return connection;
-	//
-	// } catch (SQLException e) {
-	// log.error("Connection Failed! Check output console");
-	// e.printStackTrace();
-	// return null;
-	// }
-	// }
 
 	/*
 	 * (non-Javadoc)
@@ -125,7 +95,10 @@ public class CRUD implements DBConnection {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		log.info("SQL: " + sql);
+		
 		try {
+			
+			ps = getReaderStatement(sql);
 			ps = getLocalConnection().prepareStatement(sql);
 			setValuesInPreparedStatement(ps, params);
 			rs = ps.executeQuery();
@@ -157,7 +130,9 @@ public class CRUD implements DBConnection {
 			throw new LogsReaderException(e, "Error reading the SQL:[%s]", sql);
 		} finally {
 			try {
-				ps.close();
+
+				if (ps != null)
+					ps.close();
 				if (rs != null)
 					rs.close();
 			} catch (Exception e) {
@@ -174,6 +149,7 @@ public class CRUD implements DBConnection {
 	@Override
 	public <T> int delete(T data) {
 		PreparedStatement ps = null;
+		Connection cnx = writer;
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -198,7 +174,7 @@ public class CRUD implements DBConnection {
 			String sql = String.format("DELETE FROM %s WHERE %s", nameTable,
 					params);
 
-			ps = getLocalConnection().prepareStatement(sql);
+			ps = cnx.prepareStatement(sql);
 			setValuesInPreparedStatement(ps, value);
 			int numberRows = ps.executeUpdate();
 			log.info(String.format("Number of rows afected %s", numberRows));
@@ -208,7 +184,9 @@ public class CRUD implements DBConnection {
 					data);
 		} finally {
 			try {
-				ps.close();
+
+				if (ps != null)
+					ps.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -223,6 +201,7 @@ public class CRUD implements DBConnection {
 	@Override
 	public <T> int update(T data) {
 		PreparedStatement ps = null;
+		Connection cnx = writer;
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -257,7 +236,9 @@ public class CRUD implements DBConnection {
 
 			log.info(sql);
 
-			ps = getLocalConnection().prepareStatement(sql);
+			
+			ps = cnx.prepareStatement(sql);
+
 			setValuesInPreparedStatement(ps, ArrayUtils.addAll(value, valueIds));
 			int numberRows = ps.executeUpdate();
 			log.info(String.format("Number of rows afected %s", numberRows));
@@ -267,7 +248,9 @@ public class CRUD implements DBConnection {
 					data);
 		} finally {
 			try {
-				ps.close();
+
+				if (ps != null)
+					ps.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -283,6 +266,7 @@ public class CRUD implements DBConnection {
 	synchronized public <T> T insert(T data) {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
+		Connection cnx = null;
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -321,8 +305,9 @@ public class CRUD implements DBConnection {
 					nameTable, StringUtils.join(columns, ", "), nextVal,
 					paramsStr);
 
-			ps = getLocalConnection().prepareStatement(sql,
-					Statement.RETURN_GENERATED_KEYS);
+			cnx = writer;
+
+			ps = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			setValuesInPreparedStatement(ps, params);
 
@@ -338,12 +323,17 @@ public class CRUD implements DBConnection {
 			}
 
 			return data;
-		} catch (Exception e) {
+		} catch (SQLException e) {
+			if (e.getErrorCode() != 23505)
+				throw new LogsReaderException(e, "Error EC:[%s] inserting the data:[%s]",e.getErrorCode(),data);
+			return data;
+		}catch (Exception e) {
 			throw new LogsReaderException(e, "Error inserting the data:[%s]",
 					data);
 		} finally {
 			try {
-				ps.close();
+				if (ps != null)
+					ps.close();
 				if (rs != null)
 					rs.close();
 			} catch (Exception e) {
@@ -362,42 +352,6 @@ public class CRUD implements DBConnection {
 		}
 	}
 
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see com.github.bbva.logsReader.db.DBConnection#commit()
-	// */
-	// @Override
-	// public void commit() {
-	// if (!dbAutoCommit)
-	// try {
-	// Connection cnx= getLocalConnection();
-	// if(cnx != null && cnx.getTransactionIsolation() ==
-	// cnx.TRANSACTION_READ_UNCOMMITTED)
-	// cnx.commit();
-	//
-	// } catch (SQLException e) {
-	// throw new LogsReaderException(e, "Error making commit.");
-	// }
-	//
-	// }
-	//
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see com.github.bbva.logsReader.db.DBConnection#rollbak()
-	// */
-	// @Override
-	// public void rollbak() {
-	// try {
-	// Connection cnx= getLocalConnection();
-	// if(cnx != null && cnx.getTransactionIsolation() ==
-	// cnx.TRANSACTION_READ_UNCOMMITTED)
-	// cnx.commit();
-	// } catch (SQLException e) {
-	// throw new LogsReaderException(e, "Error making rollback.");
-	// }
-	// }
 
 	@Override
 	public <T> List<T> read(RowMapper<T> loader, Class<T> clazz, String sql,
@@ -406,8 +360,10 @@ public class CRUD implements DBConnection {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		log.info("SQL: " + sql);
+		
 		try {
-			ps = getLocalConnection().prepareStatement(sql);
+			
+			ps = getReaderStatement(sql);
 			setValuesInPreparedStatement(ps, params);
 			rs = ps.executeQuery();
 			ResultSetMetaData rsMetaData = rs.getMetaData();
@@ -428,7 +384,9 @@ public class CRUD implements DBConnection {
 			throw new LogsReaderException(e, "Error reading the SQL:[%s]", sql);
 		} finally {
 			try {
-				ps.close();
+
+				if (ps != null)
+					ps.close();
 				if (rs != null)
 					rs.close();
 			} catch (Exception e) {
@@ -437,11 +395,38 @@ public class CRUD implements DBConnection {
 		}
 	}
 
+	public void openWriter() {
+		try {
+			this.writer = getLocalConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void closeWriter() {
+		try {
+			if (this.writer != null)
+				this.writer.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private PreparedStatement getReaderStatement(String sql) throws SQLException {
+		try {
+			return this.reader.prepareStatement(sql);
+		} catch (Exception e) {
+			log.info("Connection Reader created.");
+			this.reader = getLocalConnection();
+			return this.reader.prepareStatement(sql);			
+		}
+	}
+
 	private Connection getLocalConnection() throws SQLException {
 
-		return connection;
+		return ds.getConnection();
 
-		// Connection cnx = ds.getConnection();
+		// cnx = ds.getConnection();
 		// cnx.setAutoCommit(dbAutoCommit);
 		// return cnx;
 	}

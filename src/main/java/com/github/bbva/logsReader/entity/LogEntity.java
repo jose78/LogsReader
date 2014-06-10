@@ -173,15 +173,12 @@ public class LogEntity {
 		// 2014/04/09 00:00:08.960
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 		try {
-			
-			int sec = 600;
-
 			this.timeStamp = new Timestamp(sdf.parse(map.get("timeStamp"))
 					.getTime());
 			
 	        Calendar cal = Calendar.getInstance();
 	        cal.setTimeInMillis(timeStamp.getTime());
-	        cal.add(Calendar.MINUTE, -125);
+	        cal.add(Calendar.MINUTE, +125);
 	        this.timeStamp = new Timestamp(cal.getTime().getTime());
 	        
 			

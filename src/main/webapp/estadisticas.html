@@ -2,14 +2,11 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css"
-	href="./KUAJII MONITORING SITE_files/standard-css-default-ltr-ltr.css">
 
-<link rel="stylesheet" type="text/css"
-	href="./KUAJII MONITORING SITE_files/overlay.css">
 
 
 <link rel="stylesheet" type="text/css" href="resources/css/style.css">
+
 
 <link rel="stylesheet"
 	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
@@ -18,9 +15,14 @@
 <script src="resources/js/main_local.js"></script>
 
 
-<script type="text/javascript">
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
 
-     var contRow= 0;
+<script type="text/javascript">
+	google.load('visualization', '1', {
+		packages : [ 'Table', 'corechart' ]
+	});
+
+	var contRow = 0;
 	function executeServiceEst() {
 		console.log("starting executeServiceEst");
 
@@ -28,28 +30,32 @@
 
 		var fecha = '';
 		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
-		if(frecuenciaTiempo == 'diario')
-			fecha = '&fecha='+document.getElementById('datepicker').value;
+		if (frecuenciaTiempo == 'diario')
+			fecha = '&fecha=' + document.getElementById('datepicker').value;
 		else
-			fecha="&fecha=";
-		
+			fecha = "&fecha=";
+
 		var percentil = document.getElementById('percentil').value;
-		
-		var url = "/getEstadistica?frecuencia="+frecuenciaTiempo+fecha+"&percentil="+percentil;
+
+		var url = "getEstadistica?frecuencia=" + frecuenciaTiempo + fecha
+				+ "&percentil=" + percentil;
 
 		console.log("URL: " + url);
-		callService(url, function(result) {
-			contRow= 0;
-			clean('tableServicesEst');
-			printResult(result);
-			
-			var date = new Date;
-			var seconds = date.getSeconds();
-			var minutes = date.getMinutes();
-			var hour = date.getHours();
-			document.getElementById('refreshDate').innerHTML= "Última actualziación:" + hour+":"+minutes+":"+seconds;
-			
-		});
+		callService(
+				url,
+				function(result) {
+					contRow = 0;
+					clean('tableServicesEst');
+					printResult(result);
+
+					var date = new Date;
+					var seconds = date.getSeconds();
+					var minutes = date.getMinutes();
+					var hour = date.getHours();
+					document.getElementById('refreshDate').innerHTML = "Última actualziación:"
+							+ hour + ":" + minutes + ":" + seconds;
+
+				});
 	}
 
 	$("document").ready(function() {
@@ -65,241 +71,147 @@
 	});
 
 	function printResult(dataJSON) {
-		var table = document.getElementById('tableServicesEst');
+
 		var json = JSON.parse(dataJSON);
 
-		for (var i = 0; i < json.length; i++) {
-			var data = json[i];
+		console.log(json);
+		console.log(json.tableView);
 
-			var row = document.getElementById("row_" + data.service + "_"
-					+ data.application);
+		var data = new google.visualization.DataTable(json.tableView);
 
-			if (row == null) {
-				row = addRow(table, data.service, data.application,
-						data.aggregate , contRow , json);
-				contRow++;
-			}
-			row.insertCell(0).innerHTML = data.application;
-			row.insertCell(1).innerHTML = data.service;
-			row.insertCell(2).innerHTML = data.medianColum + " ms";
-			row.insertCell(3).innerHTML = data.percentile + " ms";
-			row.insertCell(4).innerHTML = data.aggregate + " ms";
-			row.insertCell(5).innerHTML = '+- '+data.standaDesviation;
-			row.insertCell(6).innerHTML = data.ok + " %";
-			row.insertCell(7).innerHTML = data.failDown + " %";
-			row.insertCell(8).innerHTML = data.failUp + " %";
+		var table = document.getElementById('table');
+		var das = new google.visualization.Table(table);
+		console.log(das);
+		das.draw(data, {
+			'allowHtml' : true
+		});
+		google.visualization.events.addListener(das, 'select', function() {
+			console.log("eventoo lanzado.");
+			var selection = das.getSelection();
+			console.log(selection);
+			var i = selection[0].row;
 
-			row.cells[1].align = "center";
-			row.cells[5].align = "center";
-			row.cells[6].align = "center";
-			row.cells[7].align = "center";
-			row.cells[2].align = "center";
-			row.cells[3].align = "center";
-			row.cells[4].align = "center";
+			console.log("row:" + i);
 
-		}
-		
-		document.getElementById('thPercentil').innerHTML= "Percentil "+document.getElementById('percentil').value;
-		
+			var max = json.tableView.rows[i].c[12].v;
+			var min = json.tableView.rows[i].c[11].v;
+
+			var q1 = json.tableView.rows[i].c[7].v;
+			var q2 = json.tableView.rows[i].c[8].v;
+			var q3 = json.tableView.rows[i].c[9].v;
+			var percentil = json.tableView.rows[i].c[10].v;
+			showPanel(json.tableView.rows[i].c[1].v,
+					json.tableView.rows[i].c[0].v, Number(max), Number(min),
+					q1, q2, q3, percentil);
+
+		});
+
 	}
 
-	
-	
-	function addRow(table, nameService, application, aggregate,contRow , json) {
+	function showPanel(service, application, max, min, q1, q2, q3, percentil) {
 
-		var rows = table.rows;
-		var rowCount = rows.length;
+		console.log(service);
+		console.log(application);
+		console.log(max);
+		console.log(min);
+		console.log(q1);
+		console.log(q2);
+		console.log(q3);
+		console.log(percentil);
 
-		var row = table.insertRow(rowCount);
-		row.height = "30px";
-		row.style.backgroundColor="lightblue";
-		
-		row.id = contRow;
-		row.onclick = function() {
-			console.log("Pulsado " + nameService);
-			
-			alert("Fila: " + json[contRow].q3);
-			alert("q3: " + json[contRow].q3);
-			
-			
-			function drawVisualization(q1,q2,q3,p95 , max , min) {
-				   // Populate the data table.
-				    var dataTable = google.visualization.arrayToDataTable([    
-				       [0,0 ,0 ,0 ,       ,40,45],
-				       [5, 31, 38, 55, 66 ,40,45]
-				       
-				    // Treat first row as data as well.
-				    ], true);
+		var dataTable = google.visualization.arrayToDataTable([
+				[ '', 'MIN, Q1, Q3, MAX.', 'Q1', 'Q3', 'MAX', 'Q2', 'Percentil' ],
+				[ '', , , , , {
+					v : q2,
+					f : ' Q2:' + q2
+				}, percentil ], [ '', {
+					v : min,
+					f : 'MIN:' + min
+				}, {
+					v : q1,
+					f : 'Q1:' + q1
+				}, {
+					v : q3,
+					f : ' Q3:' + q3
+				}, {
+					v : max,
+					f : ' MAX:' + max
+				}, {
+					v : q2,
+					f : ' Q2:' + q2
+				}, percentil ]
+		// Treat first row as data as well.
+		], false);
 
-				  var option = {legend:'none', width:600, height:400 , 
-				               
-				               title:'Sticks, horizontal',
-				        curveType:'function',
-				        lineWidth: 4,
-				        series: [{'color': '#E7711B'}],
-				        intervals: { 'lineWidth': 4, 'barWidth': 0.5 },
-				        series: {1: {type: "area"},2: {type: "area"}}
-				               };
-				    // Draw the chart.
-				    var chart = new google.visualization.CandlestickChart(document.getElementById('visualization'));
-				  chart.draw(dataTable,option);
+		// Draw the chart.
+		var chart = new google.visualization.CandlestickChart(document
+				.getElementById('candlestick'));
+		chart.draw(dataTable, {
+			title: 'Gráfica del servicio '+service+'-'+application,
+			width : 600,
+			height : 400,
+			series : {
+				1 : {
+					type : "area"
+				},
+				2 : {
+					type : "area"
 				}
-			
-		};
-		
+			}
+		});
 
-		return row;
 	}
 </script>
 </head>
-<body id="body" onload="executeServiceEst();setInterval('executeServiceEst()', 60000);">
-
-	<div id="sites-chrome-everything-scrollbar">
-		<div id="sites-chrome-everything">
-			<div id="sites-chrome-page-wrapper" style="direction: ltr">
-				<div id="sites-chrome-page-wrapper-inside">
-					<div id="sites-chrome-main-wrapper">
-						<div id="sites-chrome-main-wrapper-inside">
-							<table id="sites-chrome-main" class="sites-layout-hbox">
-								<tbody>
-									<tr>
-										<td id="sites-chrome-sidebar-left"
-											class="sites-layout-sidebar-left" style="width: 200px">
-											<div id="COMP_30107336677610874" class="sites-embed">
-												<div class="sites-embed-content sites-sidebar-nav">
-													<ul class="has-expander">
-
-														<li class="topLevel parent ">
-															<div dir="ltr" style="padding-left: 0px;">
-																<div class="expander"></div>
-																<a class="sites-navigation-link topLevel">Configuración</a>
-															</div>
-															<ul class="has-expander">
-																<li class="">
-
-																	<table style="font-size: 14PX; padding-left: 38px;">
-																		<tr>
-																			<td><a onclick="executeServiceEst();"> test</a></td>
-																			<td></td>
-																		</tr>
-																		<tr>
-																			<td><a>Percentil</a></td>
-																			<td><input type="text" id="percentil" value="95"
-																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 50px; height: 15px;"></input>
-																		</tr>
-																		<tr>
-																			<td><a>Fecha</a></td>
-																			<td></td>
-																		</tr>
-																	</table>
-																</li>
+<body id="body"
+	onload="executeServiceEst();setInterval('executeServiceEst()', 60000);">
 
 
-																<li class=""><div dir="ltr"
-																		style="padding-left: 42px;">
-																		<input type="radio" name="myRadios" id="historico"
-																			checked="checked" value="historico" /> Histórico <br>
-																		<input type="radio" name="myRadios" id="diario"
-																			value="diario" /> Diario<input id="datepicker"
-																			name="datepicker" disabled="disabled" type="date"
-																			style="width: 150px;">
-																		<script type="text/javascript">
-																			var date = new Date();
+	<div id="form"
+		style="width: 350px; float: left; height: 180px; font-size: 10pt; color: #0089c9;">
+		<fieldset style="-webkit-border-radius: 10px;">
+			<legend style="font-size: 13pt;"> Configuración </legend>
 
-																			var day = date
-																					.getDate();
-																			var month = date
-																					.getMonth() + 1;
-																			var year = date
-																					.getFullYear();
+			<li>Percentil <input type="text" id="percentil" value="95"
+				class="inputs"></input>
+			</li>
+			<li>Fecha<br> <input type="radio" name="myRadios" id="historico"
+				checked="checked" value="historico" /> Histórico <br> <input
+				type="radio" name="myRadios" id="diario" value="diario" /> Diario<input
+				id="datepicker" name="datepicker" disabled="disabled" type="date"
+				style="width: 150px;"> <script type="text/javascript">
+					var date = new Date();
 
-																			if (month < 10)
-																				month = "0"
-																						+ month;
-																			if (day < 10)
-																				day = "0"
-																						+ day;
+					var day = date.getDate();
+					var month = date.getMonth() + 1;
+					var year = date.getFullYear();
 
-																			var today = year
-																					+ "-"
-																					+ month
-																					+ "-"
-																					+ day;
+					if (month < 10)
+						month = "0" + month;
+					if (day < 10)
+						day = "0" + day;
 
-																			$(
-																					"#datepicker")
-																					.attr(
-																							"value",
-																							today);
-																		</script>
-																	</div>
-															</ul>
-														</li>
-													</ul>
-												</div>
-											</div>
-										</td>
-										<td id="sites-canvas-wrapper">
-											<div id="sites-canvas">
+					var today = year + "-" + month + "-" + day;
 
-												<div id="sites-canvas-main" class="sites-canvas-main">
-													<div id="sites-canvas-main-content">
-														<table
-															class="sites-layout-name-one-column sites-layout-hbox">
-															<tbody>
-																<tr>
-																	<td class="sites-layout-tile sites-tile-name-content-1"
-																		style="font-size: 12px; font: 10pt Arial, sans-serif;"style="width: 90%;">
-
-
-
-
-
-<a id="refreshDate"></a>
-																		<table class="gradienttable" id="tableServicesEst" style="width:100%;"">
-																			<thead >
-																				<tr align="center" height="40px">
-																					<th ">Application</th>
-																					<th ">Servicio</th>
-																					<th >Median Colum</th>
-																					<th  id="thPercentil">Percentil</th>
-																					<th >Agrgate</th>
-																					<th>Standar Desviation</th>
-																					<th >% OK</th>
-																					<th >% Bajo OK</th>
-																					<th >%Alto OK</th>
-																				</tr>
-																			</thead>
-																			<tbody>
-																			</tbody>
-																		</table>
-																	</td>
-																</tr>
-															</tbody>
-														</table>
-													</div>
-												</div>
-
-											</div>
-											
-											
-											
-											
-										</td>
-										
-									</tr>
-									
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-				</div>
-			</div>
-
-		</div>
+					$("#datepicker").attr("value", today);
+				</script>
+			</li>
+		</fieldset>
 	</div>
+	<div id="left" style="margin-left: 400px; height: 180px;">
+		<a class="btnActualizar" style="cursor: pointer;margin-left: 30%;margin-top: 10%"
+			onclick="executeServiceEst();">Actualizar</a>
+	</div>
+	
 
 
+	<div id="sites-canvas">
+
+		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
+
+		<div id='table'></div>
+		<div id='timeline'></div>
+		<div id='candlestick'></div>
+	</div>
 </body>
 </html>

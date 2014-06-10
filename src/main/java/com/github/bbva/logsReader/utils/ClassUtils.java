@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import com.github.bbva.logsReader.annt.Column;
 import com.github.bbva.logsReader.annt.Id;
-import com.github.bbva.logsReader.db.CRUD;
 import com.github.bbva.logsReader.utils.enums.TypeConverterEnum;
 
 /**

@@ -2,11 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css"
-	href="./KUAJII MONITORING SITE_files/standard-css-default-ltr-ltr.css">
 
-<link rel="stylesheet" type="text/css"
-	href="./KUAJII MONITORING SITE_files/overlay.css">
 
 
 <link rel="stylesheet" type="text/css" href="resources/css/style.css">
@@ -20,7 +16,7 @@
 <script type="text/javascript" src="//www.google.com/jsapi"></script>
 <script type="text/javascript">
 	google.load('visualization', '1', {
-		packages : [ 'corechart' ]
+		packages : [ 'corechart', 'Table' ]
 	});
 </script>
 <script type="text/javascript">
@@ -33,62 +29,57 @@
 		var url = "/ErrorNowTbl?ancho=" + ancho + "&minutos=" + minutos;
 
 		console.log("URL: " + url);
-		callService(url, function(result) {
-			clean('idTableErrorNow');
-			printResultErrorNow(result);
-			var date = new Date;
-			var seconds = date.getSeconds();
-			var minutes = date.getMinutes();
-			var hour = date.getHours();
-			document.getElementById('refreshDate').innerHTML= "Última actualziación:" + hour+":"+minutes+":"+seconds;
-			
-		});
-		// 
-		 
+		callService(
+				url,
+				function(result) {
+					clean('idTableErrorNow');
+					printResultErrorNow(result);
+					var date = new Date;
+					var seconds = date.getSeconds();
+					var minutes = date.getMinutes();
+					var hour = date.getHours();
+					document.getElementById('refreshDate').innerHTML = "Última actualziación:"
+							+ hour + ":" + minutes + ":" + seconds;
 
-		url = "/ErrorNowGr?ancho=" + ancho+"&application=BUZZ";
+				});
+		// 
+
+		url = "ErrorNowGr?ancho=" + ancho + "&application=BUZZ";
 		console.log("URL: " + url);
 		callService(url, function(result) {
-			
-			drawGraph(result,'BUZZ');
+
+			drawGraph(result, 'BUZZ');
 		});
-		
-		url = "/ErrorNowGr?ancho=" + ancho+"&application=NXT/WALLET";
+
+		url = "/ErrorNowGr?ancho=" + ancho + "&application=NXT/WALLET";
 		console.log("URL: " + url);
 		callService(url, function(result) {
-			
-			drawGraph(result,'NXT/WALLET');
+
+			drawGraph(result, 'NXT/WALLET');
 		});
 	}
-	
-	
 
+	function drawGraph(dataJson, application) {
 
-	function drawGraph(dataJson , application) {
-
-		var json = JSON
-				.parse(dataJson);
+		var json = JSON.parse(dataJson);
+		console.log("Application:" + application);
 		console.log(json);
-		
+		console.log(json.listData);
+
 		try {
 
-			var title = "Gráfica que recoge el Nº de errores por franja horaria para la aplicación "+application;
+			var title = "Gráfica que recoge el Nº de errores por franja horaria para la aplicación "
+					+ application;
 
-		
-			console
-					.log("eje y : "
-							+ json.axisY);
-			console
-					.log("eje x : "
-							+ json.axisX);
+			console.log("eje y : " + json.axisY);
+			console.log("eje x : " + json.axisX);
 
-			var data = google.visualization
-					.arrayToDataTable(json.listData);
+			var data = google.visualization.arrayToDataTable(json.listData);
 
 			var options = {
 				title : title,
-				width : 800,
-				height : 400,
+				width : 600,
+				height : 300,
 				vAxis : {
 					title : json.axisY
 				},
@@ -96,92 +87,67 @@
 					title : json.axisX
 				},
 				seriesType : "bars",
-				
+
 			};
 
-			
-			var chart = new google.visualization.ComboChart(
-					document
-							.getElementById('visualization'+application));
+			var chart = new google.visualization.ComboChart(document
+					.getElementById('visualization_' + application));
 			// The select handler. Call the chart's getSelection() method
 			function selectHandler() {
-				var selectedItem = chart
-						.getSelection()[0];
-				console
-						.log("selectedItem"
-								+ selectedItem);
+				var selectedItem = chart.getSelection()[0];
+				console.log("selectedItem" + selectedItem);
 				if (selectedItem) {
-					var value = data
-							.getValue(
-									selectedItem.row,
-									selectedItem.column);
-					alert('The user selected '
-							+ value);
-					console
-							.log("row:"
-									+ selectedItem.row
-									+ " -> "
-									+ json.listData[selectedItem.row + 1][0]);
-					console
-							.log("column:"
-									+ selectedItem.column);
+					var value = data.getValue(selectedItem.row,
+							selectedItem.column);
+					alert('The user selected ' + value);
+					console.log("row:" + selectedItem.row + " -> "
+							+ json.listData[selectedItem.row + 1][0]);
+					console.log("column:" + selectedItem.column);
 				}
 			}
 
 			// Listen for the 'select' event, and call my function selectHandler() when
 			// the user selects something on the chart.
-			google.visualization.events
-					.addListener(
-							chart,
-							'select',
-							selectHandler);
+			google.visualization.events.addListener(chart, 'select',
+					selectHandler);
 
-			chart.draw(data,
-					options);
+			chart.draw(data, options);
 
-			console
-					.log('Data create OK');
+			console.log('Data create OK');
 
 		} catch (err) {
-			console
-					.log('ERROR: '
-							+ err);
+			console.log('ERROR: ' + err);
 		}
 
-		console
-				.log("printData FIN");
+		console.log("printData FIN");
 
 	}
 
 	function printResultErrorNow(dataJSON) {
 
-		var table = document.getElementById('idTableErrorNow');
-		console.log("ID TABLE tableErrorNow" + table);
 		var json = JSON.parse(dataJSON);
-		console.log("JSON " + json);
 
-		for (var i = 0; i < json.length; i++) {
-			var data = json[i];
+		console.log(json);
+		console.log(json.tableView);
 
-			var row = document.getElementById("row_error_now_" + data.service
-					+ "_" + data.application);
+		var data = new google.visualization.DataTable(json.tableView);
 
-			if (row == null) {
-				row = addRow(table, data.service, data.aggregate);
-			}
+		var table = document.getElementById('table');
+		var das = new google.visualization.Table(table);
+		console.log(das);
+		das.draw(data, {
+			'allowHtml' : true
+		});
+		google.visualization.events.addListener(das, 'select', function() {
+			console.log("eventoo lanzado.");
+			var selection = das.getSelection();
+			console.log(selection);
+			var i = selection[0].row;
+			showPanel(json.rows[i].c[0].v, json.rows[i].c[1].v);
 
-			row.insertCell(0).innerHTML = data.application;
-			row.insertCell(1).innerHTML = data.label;
-			row.insertCell(2).innerHTML = data.numberOfError;
+		});
 
-			row.cells[0].align = "center";
-			row.cells[1].align = "center";
-			row.cells[2].align = "center";
-
-		}
 	}
-
-	
 
 	function addRow(table, nameService, aggregate) {
 
@@ -190,114 +156,50 @@
 
 		var row = table.insertRow(rowCount);
 		row.id = "row_error_now_" + nameService;
-		
 
 		return row;
 	}
 </script>
 </head>
-<body id="body" onload="executeGettingErrorNow();setInterval('executeGettingErrorNow()', 60000);">
-
-	<div id="sites-chrome-everything-scrollbar">
-		<div id="sites-chrome-everything">
-			<div id="sites-chrome-page-wrapper" style="direction: ltr">
-				<div id="sites-chrome-page-wrapper-inside">
-					<div id="sites-chrome-main-wrapper">
-						<div id="sites-chrome-main-wrapper-inside">
-							<table id="sites-chrome-main" class="sites-layout-hbox">
-								<tbody>
-									<tr>
-										<td id="sites-chrome-sidebar-left"
-											class="sites-layout-sidebar-left" style="width: 250px">
-											<div id="COMP_30107336677610874" class="sites-embed">
-												<div class="sites-embed-content sites-sidebar-nav">
-													<ul class="has-expander">
-
-														<li class="topLevel parent ">
-															<div dir="ltr" style="padding-left: 0px;">
-																<div class="expander"></div>
-																<a class="sites-navigation-link topLevel">Configuración</a>
-															</div>
-															<ul class="has-expander">
-																<li class="">
-
-																	<table style="font-size: 10pt; padding-left: 38px;">
-																		<tr>
-																			<td><a onclick="executeGettingErrorNow();">
-																					test</a></td>
-																			<td></td>
-																		</tr>
-
-																		<tr>
-																			<td><a>Tamaño de muestra</a></td>
-																			<td><input type="text" id="errorNowAncho"
-																				value="5" style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></td>
-																		</tr>
-																		<tr>
-																			<td><a>Minutos a escrutar</a></td>
-																			<td><input type="text" id="errorNowMinutos"
-																				value="5"
-																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 70px; height: 15px;;">
-																			</td>
-																		</tr>
-
-																	</table>
-																</li>
-															</ul>
-														</li>
-													</ul>
-												</div>
-											</div>
-										</td>
-										<td id="sites-canvas-wrapper">
-											<div id="sites-canvas">
-
-												<div id="sites-canvas-main" class="sites-canvas-main">
-													<div id="sites-canvas-main-content">
-														<table
-															class="sites-layout-name-one-column sites-layout-hbox">
-															<tbody>
-																<tr>
-																
-																	<td class="sites-layout-tile sites-tile-name-content-1"
-																		style="font-size: 12px; font: 10pt Arial, sans-serif;">
-																		<a id="refreshDate" style="font-size: 10pt;text-align: left;" ></a>
-																		<table class="gradienttable"  style="width:100%;" id="idTableErrorNow">
-																			<thead >
-																				<tr align="center" height="40px">
-																					<th width="30%">Aplicación</th>
-																					<th width="20%">Servicio</th>
-																					<th width="25%">Nº de errores</th>
-																				</tr>
-																			</thead>
-																			<tbody>
-																			</tbody>
-																		</table>
+<body id="body"
+	onload="executeGettingErrorNow();setInterval('executeGettingErrorNow()', 60000);">
 
 
-																	</td>
-																</tr>
-																<tr><td><div id='visualizationBUZZ'></div> </td></tr>
-																<tr><td><div id='visualizationNXT/WALLET'></div> </td></tr>
-															</tbody>
-														</table>
-													</div>
-												</div>
 
-											</div>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
+	<div id="form"
+		style="width: 350px; float: left; height: 120px; font-size: 10pt; color: #0089c9;">
+		<fieldset style="-webkit-border-radius: 10px;">
+			<legend style="font-size: 13pt;"> Configuración </legend>
 
-				</div>
-			</div>
+			<li>Tamaño de muestra <input type="text" id="errorNowAncho" class="inputs"
+				value="5">
+			</td>
+			</li>
+			<li>Minutos a escrutar&nbsp;&nbsp;<input type="text" id="errorNowMinutos" class="inputs"
+				value="5">
+			</li>
+			 
 
-		</div>
+		</fieldset>
 	</div>
 
+	<div id="left" style="margin-left: 400px; height: 120px;">
+		<a class="btnActualizar"
+			style="cursor: pointer; margin-left: 30%; margin-top: 10%"
+			onclick="executeGettingErrorNow();">Actualizar</a>
+	</div>
+
+	<div id="sites-canvas">
+
+		<a id="refreshDate" style="font-size: 10pt; text-align: left;"></a>
+
+		<div id='table' style="width: 100%;" ></div>
+		
+		<div id='visualization_BUZZ'></div>
+		<div id='visualization_NXT/WALLET'></div>
+
+
+	</div>
 
 </body>
 </html>

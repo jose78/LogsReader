@@ -21,7 +21,7 @@ public class LogsReaderException extends RuntimeException {
 	}
 
 	public LogsReaderException(String msg , Object... data) {
-		super(msg);
+		super(String.format(msg, data));
 //		log.error( String.format(msg, data));
 	}
 
