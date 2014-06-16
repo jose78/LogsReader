@@ -46,15 +46,13 @@ public class Daemon {
 		semaphore = false;
 		log.info("Executing DAEMON.");
 		
-		connection.openWriter();
-		
 		for (EnumSource source : EnumSource.values()) {
 
 			if (source.isExecutable()) {
 				try {
 					List<String> lstLinesBuzz = filesUtils.tail(
 							source.getFileBuzz(), source.getNumLines());
-					saveData(lstLinesBuzz, source.APP_BUZZ, source.name());
+					saveData(lstLinesBuzz,EnumSource.APP_BUZZ, source.name());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -63,14 +61,16 @@ public class Daemon {
 				try {
 					List<String> lstLinesNxt = filesUtils.tail(
 							source.getFileNxt(), source.getNumLines());
-					saveData(lstLinesNxt, source.APP_NXT, source.name());
+					saveData(lstLinesNxt, EnumSource.APP_NXT, source.name());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				source.clear();
+				log.info("Delete tmp file BUZZ:" + source.clearBuzz());
+				log.info("Delete tmp file NXT/WALLET:" + source.clearNxt());
+				
 			}
 		}
-		connection.closeWriter();
+
 		log.info("END DAEMON.");
 		return true;
 	}

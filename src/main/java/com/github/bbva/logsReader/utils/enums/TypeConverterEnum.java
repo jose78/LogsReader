@@ -5,12 +5,24 @@ package com.github.bbva.logsReader.utils.enums;
 
 import java.math.BigDecimal;
 
+
+
 /**
  * @author jose
  * 
  */
 public enum TypeConverterEnum {
 	
+	INTEGER_TO_DOUBLE(new InternalCommand<Double>() {
+		public Double executeChange(Object value) {
+			return ((Integer) value).doubleValue();
+		}
+	}),
+	DOUBLE_TO_DOUBLE(new InternalCommand<Double>() {
+		public Double executeChange(Object value) {
+			return (Double) value;
+		}
+	}),
 	INTEGER_TO_STRING(new InternalCommand<String>() {
 		public String executeChange(Object value) {
 			return value + "";
