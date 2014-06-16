@@ -1,10 +1,17 @@
 
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css"
+	href="./KUAJII MONITORING SITE_files/standard-css-default-ltr-ltr.css">
+
+<link rel="stylesheet" type="text/css"
+	href="./KUAJII MONITORING SITE_files/overlay.css">
+
 
 <link rel="stylesheet" type="text/css" href="resources/css/style.css">
-
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Google Visualization API Sample</title>
 <script type="text/javascript" src="//www.google.com/jsapi"></script>
 <link rel="stylesheet"
 	href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
@@ -26,9 +33,9 @@
 		var data = google.visualization.arrayToDataTable(dataDonut);
 
 		var options = {
-			is3D : true,
-			width : 800,
-			height : 400,
+				 is3D: true,
+				width : 800,
+				height : 400,
 			title : 'Donut con los status HTTP.',
 			pieHole : 0.4,
 		};
@@ -37,287 +44,411 @@
 				.getElementById('donutchart'));
 		chart.draw(data, options);
 	}
-
-	var parameterService = null;
-	var parameterTO = null;
-	var parameterAggregate = null;
-	var parameterStandaDesviation = null;
-
-	var parameterDate = null;
-	var parameterFrecuenciaTiempo = null;
-	var parameterapplication = null;
-
-	function callService() {
-
-		document.getElementById("hourchart").innerHTML = '';
-
-		console.log("callService");
-
-		var agrupador = document.getElementById('agrupador').value;
-
-		var url = "ListaLlamadasAgrupadasPorTiempo?serviceName="
-				+ parameterService + "&ancho=" + agrupador + '&timeOut='
-				+ parameterTO + "&frecuenciaTiempo="
-				+ parameterFrecuenciaTiempo + "&application="
-				+ parameterapplication;
-
-		function handler() {
-
-			if (client.readyState == 4 && client.status == 200) {
-				console.log("Handler start");
-				console.log(client.responseText);
-				printData(client.responseText);
-				console.log("Handler FIN");
-			}
-		}
-
-		var client = new XMLHttpRequest();
-		client.onreadystatechange = handler;
-		client.open("GET", url);
-		client.send();
-
-	}
-
-	function callServiceHour(limInf, limSup) {
-		console.log("callServiceHour");
-
-		var agrupador = document.getElementById('agrupador').value;
-
-		var url = "ListaLlamadasAgrupadasPorHora?serviceName="
-				+ parameterService + "&limInf=" + limInf + '&limSup=' + limSup
-				+ "&application=" + parameterapplication;
-
-		console.log(url);
-
-		function handler() {
-
-			if (client.readyState == 4 && client.status == 200) {
-				console.log("Handler start");
-				console.log(client.responseText);
-				printDataHour(client.responseText);
-				console.log("Handler FIN");
-			}
-		}
-
-		var client = new XMLHttpRequest();
-		client.onreadystatechange = handler;
-		client.open("GET", url);
-		client.send();
-
-	}
-
-	var intervalo = '';
-
-	function printData(dataJson) {
-
-		var json = JSON.parse(dataJson);
-		console.log(json);
-		if (json.donutView.donutData.length > 0)
-			drawDonut(json.donutView.donutData);
-		try {
-
-			var title = "Gráfica que recoge el Nº de llamadas por intervalo de milisegundos";
-
-			console.log("eje y : " + json.barView.axisY);
-			console.log("eje x : " + json.barView.axisX);
-
-			var data = google.visualization
-					.arrayToDataTable(json.barView.listData);
-
-			var options = {
-				title : title,
-				width : 800,
-				height : 400,
-				vAxis : {
-					title : json.barView.axisY
-				},
-				hAxis : {
-					title : json.barView.axisX
-				},
-				seriesType : "bars",
-				series : {
-					1 : {
-						type : "line"
-					}
-				}
-			};
-
-			var chart = new google.visualization.ComboChart(document
-					.getElementById('visualization'));
-			// The select handler. Call the chart's getSelection() method
-			function selectHandler() {
-				var selectedItem = chart.getSelection()[0];
-				console.log("selectedItem" + selectedItem);
-				if (selectedItem) {
-					var value = data.getValue(selectedItem.row,
-							selectedItem.column);
-
-					console.log("row:" + selectedItem.row + " -> "
-							+ json.barView.listData[selectedItem.row + 1][0]);
-
-					intervalo = json.barView.listData[selectedItem.row + 1][0];
-					var array = json.barView.listData[selectedItem.row + 1][0]
-							.split('-');
-					console.log("length: " + array);
-					if (array.length < 2) {
-						callServiceHour(array[0], array[0]);
-					} else {
-						callServiceHour(array[0], array[1]);
-					}
-
-				}
-			}
-
-			// Listen for the 'select' event, and call my function selectHandler() when
-			// the user selects something on the chart.
-			google.visualization.events.addListener(chart, 'select',
-					selectHandler);
-
-			chart.draw(data, options);
-
-			console.log('Data create OK');
-
-		} catch (err) {
-			console.log('ERROR: ' + err);
-		}
-
-		console.log("printData FIN");
-
-	}
-
-	function printDataHour(dataJson) {
-
-		var json = JSON.parse(dataJson);
-		console.log(json);
-
-		try {
-
-			var title = "Gráfica que recoge el Nº de llamadas por franja horaria para las llamadas que duran "
-					+ intervalo + " ms.";
-			var data = google.visualization.arrayToDataTable(json);
-			var options = {
-				title : title,
-				width : 800,
-				height : 400,
-				vAxis : {
-					title : 'Nº de llamdas'
-				},
-				hAxis : {
-					title : 'Franja horaria.'
-				},
-				seriesType : "bars",
-
-			};
-
-			var chart = new google.visualization.ComboChart(document
-					.getElementById('hourchart'));
-
-			chart.draw(data, options);
-
-			console.log('Data create OK');
-
-		} catch (err) {
-			console.log('ERROR: ' + err);
-		}
-
-		console.log("printData FIN");
-
-	}
-
-	function load() {
-
-		console.log("log");
-
-		parameterService = GetUrlValue("service");
-		parameterTO = GetUrlValue("to");
-
-		parameterStandaDesviation = GetUrlValue("standaDesviation");
-
-		parameterapplication = GetUrlValue("application");
-		parameterDate = GetUrlValue("fecha");
-		parameterFrecuenciaTiempo = GetUrlValue("frecuenciaTiempo");
-
-		
-		console.log("1");
-		if("diario" == parameterFrecuenciaTiempo){
-			document.getElementById("infoDate").innerHTML= "Fecha: "+parameterDate+".";
-		}else{
-			document.getElementById("infoDate").innerHTML= "Histórico.";
-		}
-		
-		console.log("2");
-		
-		document.getElementById("infoApp").innerHTML= "Aplicación: "+parameterapplication+".";
-		console.log("4");
-		document.getElementById("infoService").innerHTML= "Servicio: "+parameterService+".";
-		
-			
-		console.log("frecuenciaTiempo:" + parameterFrecuenciaTiempo);
-		console.log("date:" + parameterDate);
-		console.log("service:" + parameterService);
-		console.log("application:" + parameterapplication);
-
-		console.log("to:" + parameterTO);
-
-		console.log("StandaDesviation:" + parameterStandaDesviation);
-
-		var $radios = $('input:radio[name=myRadios]');
-		$radios.filter('[value=' + parameterFrecuenciaTiempo + ']').prop(
-				'checked', true);
-
-		callService();
-	}
-
-	function decode(name) {
-		var find = '%20';
-		var re = new RegExp(find, 'g');
-		return name.replace(re, ' ');
-	}
-
-	function GetUrlValue(VarSearch) {
-		var SearchString = window.location.search.substring(1);
-		var VariableArray = SearchString.split('&');
-		for (var i = 0; i < VariableArray.length; i++) {
-			var KeyValuePair = VariableArray[i].split('=');
-			if (KeyValuePair[0] == VarSearch) {
-
-				return decode(KeyValuePair[1]);
-			}
-		}
-	}
 </script>
 
 </head>
 <body id="body" onload="load();">
 
+	<div id="sites-chrome-everything-scrollbar">
+		<div id="sites-chrome-everything">
+			<div id="sites-chrome-page-wrapper" style="direction: ltr">
+				<div id="sites-chrome-page-wrapper-inside">
+					<div id="sites-chrome-main-wrapper">
+						<div id="sites-chrome-main-wrapper-inside">
+							<table id="sites-chrome-main" class="sites-layout-hbox">
+								<tbody>
+									<tr>
+										<td id="sites-chrome-sidebar-left"
+											class="sites-layout-sidebar-left" style="width: 200px">
+											<div id="COMP_30107336677610874" class="sites-embed">
+												<div class="sites-embed-content sites-sidebar-nav">
+													<ul class="has-expander">
 
-	<div id="form"
-		style="width: 350px; float: left; height: 180px; font-size: 10pt; color: #0089c9;">
-		<fieldset style="-webkit-border-radius: 10px;">
-			<legend style="font-size: 13pt;"> Configuración </legend>
+														<li class="topLevel parent ">
+															<div dir="ltr" style="padding-left: 0px;">
+																<div class="expander"></div>
+																<a class="sites-navigation-link topLevel">Configuración</a>
+															</div>
+															<ul class="has-expander">
+																<li class="">
 
-			<li id="infoApp"></li>
-			<li id="infoService"></li>
-			<li id="infoDate"></li>
-			<li>Agrupado <input type="text" class="inputs" id="agrupador"onchange="callService();" value="1"></input></li>
+																	<table style="font-size: 14PX; padding-left: 38px;">
+																		<tr>
+																			<td><a onclick="callService();"> test</a></td>
+																			<td></td>
+																		</tr>
+																		<tr>
+																			<td><a> Agrupado</a></td>
+																			<td><input type="text" id="agrupador"
+																				onchange="callService();" value="1"
+																				style="margin: 0 0 1px 0; vertical-align: text-top; width: 30px; height: 15px;"></input></td>
+																		</tr>
+																	</table>
+																</li>
 
-		</fieldset>
+															</ul>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</td>
+										<td id="sites-canvas-wrapper">
+
+
+											<div id="sites-canvas-main-content">
+
+
+												<script>
+													var parameterService = null;
+													var parameterTO = null;
+													var parameterAggregate = null;
+													var parameterStandaDesviation = null;
+													
+													var parameterDate = null;
+													var parameterFrecuenciaTiempo = null;
+													var parameterapplication = null;
+
+													function callService() {
+														
+														document.getElementById("hourchart").innerHTML = '';
+														
+														console
+																.log("callService");
+
+														var agrupador = document
+																.getElementById('agrupador').value;
+
+														var url = "ListaLlamadasAgrupadasPorTiempo?serviceName="
+																+ parameterService
+																+ "&ancho="
+																+ agrupador
+																+ '&timeOut='
+																+ parameterTO
+																+ "&frecuenciaTiempo="
+																+ parameterFrecuenciaTiempo
+																+ "&application="
+																+ parameterapplication;
+
+														function handler() {
+
+															if (client.readyState == 4
+																	&& client.status == 200) {
+																console
+																		.log("Handler start");
+																console
+																		.log(client.responseText);
+																printData(client.responseText);
+																console
+																		.log("Handler FIN");
+															}
+														}
+
+														var client = new XMLHttpRequest();
+														client.onreadystatechange = handler;
+														client.open("GET", url);
+														client.send();
+
+													}
+
+													function callServiceHour(
+															limInf, limSup) {
+														console
+																.log("callServiceHour");
+
+														var agrupador = document
+																.getElementById('agrupador').value;
+
+														var url = "ListaLlamadasAgrupadasPorHora?serviceName="
+																+ parameterService
+																+ "&limInf="
+																+ limInf
+																+ '&limSup='
+																+ limSup
+																+ "&application="
+																+ parameterapplication;
+														
+														console.log(url);
+
+														function handler() {
+
+															if (client.readyState == 4
+																	&& client.status == 200) {
+																console
+																		.log("Handler start");
+																console
+																		.log(client.responseText);
+																printDataHour(client.responseText);
+																console
+																		.log("Handler FIN");
+															}
+														}
+
+														var client = new XMLHttpRequest();
+														client.onreadystatechange = handler;
+														client.open("GET", url);
+														client.send();
+
+													}
+													
+													
+													var intervalo= '';
+
+													function printData(dataJson) {
+
+														var json = JSON
+																.parse(dataJson);
+														console.log(json);
+														if (json.donutView.donutData.length > 0)
+															drawDonut(json.donutView.donutData);
+														try {
+
+															var title = "Gráfica que recoge el Nº de llamadas por intervalo de milisegundos";
+
+
+															console
+																	.log("eje y : "
+																			+ json.barView.axisY);
+															console
+																	.log("eje x : "
+																			+ json.barView.axisX);
+
+															var data = google.visualization
+																	.arrayToDataTable(json.barView.listData);
+
+															var options = {
+																title : title,
+																width : 800,
+																height : 400,
+																vAxis : {
+																	title : json.barView.axisY
+																},
+																hAxis : {
+																	title : json.barView.axisX
+																},
+																seriesType : "bars",
+																series : {
+																	1 : {
+																		type : "line"
+																	}
+																}
+															};
+
+															var chart = new google.visualization.ComboChart(
+																	document
+																			.getElementById('visualization'));
+															// The select handler. Call the chart's getSelection() method
+															function selectHandler() {
+																var selectedItem = chart
+																		.getSelection()[0];
+																console
+																		.log("selectedItem"
+																				+ selectedItem);
+																if (selectedItem) {
+																	var value = data
+																			.getValue(
+																					selectedItem.row,
+																					selectedItem.column);
+																	
+																	console
+																			.log("row:"
+																					+ selectedItem.row
+																					+ " -> "
+																					+ json.barView.listData[selectedItem.row + 1][0]);
+
+																	intervalo = json.barView.listData[selectedItem.row + 1][0];
+																	var array = json.barView.listData[selectedItem.row + 1][0]
+																			.split('-');
+																	console.log("length: " +array);
+																	if (array.length <2) {
+																		callServiceHour(
+																				array[0],
+																				array[0]);
+																	} else {
+																		callServiceHour(
+																				array[0],
+																				array[1]);
+																	}
+
+																}
+															}
+
+															// Listen for the 'select' event, and call my function selectHandler() when
+															// the user selects something on the chart.
+															google.visualization.events
+																	.addListener(
+																			chart,
+																			'select',
+																			selectHandler);
+
+															chart.draw(data,
+																	options);
+
+															console
+																	.log('Data create OK');
+
+														} catch (err) {
+															console
+																	.log('ERROR: '
+																			+ err);
+														}
+
+														console
+																.log("printData FIN");
+
+													}
+
+													function printDataHour(
+															dataJson) {
+
+														var json = JSON
+																.parse(dataJson);
+														console.log(json);
+														
+														try {
+
+															var title = "Gráfica que recoge el Nº de llamadas por franja horaria para las llamadas que duran " +intervalo+" ms.";
+															var data = google.visualization.arrayToDataTable(json);
+															var options = {
+																title : title,
+																width : 800,
+																height : 400,
+																vAxis : {
+																	title : 'Nº de llamdas'
+																},
+																hAxis : {
+																	title : 'Franja horaria.'
+																},
+																seriesType : "bars",
+																
+															};
+
+															var chart = new google.visualization.ComboChart(
+																	document
+																			.getElementById('hourchart'));
+															
+
+															
+
+															chart.draw(data,
+																	options);
+
+															console
+																	.log('Data create OK');
+
+														} catch (err) {
+															console
+																	.log('ERROR: '
+																			+ err);
+														}
+
+														console
+																.log("printData FIN");
+
+													}
+
+													function load() {
+
+														console.log("log");
+
+														parameterService = GetUrlValue("service");
+														parameterTO = GetUrlValue("to");
+
+														parameterStandaDesviation = GetUrlValue("standaDesviation");
+														
+														parameterapplication = GetUrlValue("application");
+														parameterDate = GetUrlValue("fecha");
+														parameterFrecuenciaTiempo = GetUrlValue("frecuenciaTiempo");
+														
+														console
+																.log("frecuenciaTiempo:"
+																		+ parameterFrecuenciaTiempo);
+														console
+																.log("date:"
+																		+ parameterDate);
+														console
+																.log("service:"
+																		+ parameterService);
+														console
+																.log("application:"
+																		+ parameterapplication);
+														
+														console.log("to:"
+																+ parameterTO);
+
+														console
+																.log("StandaDesviation:"
+																		+ parameterStandaDesviation);
+
+														var $radios = $('input:radio[name=myRadios]');
+														$radios
+																.filter(
+																		'[value='
+																				+ parameterFrecuenciaTiempo
+																				+ ']')
+																.prop(
+																		'checked',
+																		true);
+
+														callService();
+													}
+
+													function decode(name) {
+														var find = '%20';
+														var re = new RegExp(
+																find, 'g');
+														return name.replace(re,
+																' ');
+													}
+
+													function GetUrlValue(
+															VarSearch) {
+														var SearchString = window.location.search
+																.substring(1);
+														var VariableArray = SearchString
+																.split('&');
+														for (var i = 0; i < VariableArray.length; i++) {
+															var KeyValuePair = VariableArray[i]
+																	.split('=');
+															if (KeyValuePair[0] == VarSearch) {
+
+																return decode(KeyValuePair[1]);
+															}
+														}
+													}
+												</script>
+
+
+												<table>
+													<tr>
+														<td id="visualization"></td>
+													</tr>
+													<tr>
+														<td id="hourchart" >
+														</td>
+													</tr>
+													<tr>
+														<td id="donutchart">
+														</td>
+													</tr>
+													
+												</table>
+
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+
 	</div>
 
 
-	<div
-		style="overflow: scroll; overflow-y: scroll; overflow-x: hidden; height: 95%">
-		<table>
-			<tr>
-				<td id="visualization"></td>
-			</tr>
-			<tr>
-				<td id="hourchart"></td>
-			</tr>
-			<tr>
-				<td id="donutchart"></td>
-			</tr>
-		</table>
-	</div>
+
 </body>
 </html>

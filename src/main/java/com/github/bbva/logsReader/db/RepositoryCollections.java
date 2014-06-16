@@ -1,5 +1,6 @@
 package com.github.bbva.logsReader.db;
 
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Repository;
 import com.github.bbva.logsReader.dto.ErrorNowDTO;
 import com.github.bbva.logsReader.dto.InfoServicesDTO;
 import com.github.bbva.logsReader.dto.TuplaDto;
+import com.github.bbva.logsReader.entity.FileEnvironmentEntity;
 
 /**
  * 
@@ -28,6 +30,7 @@ import com.github.bbva.logsReader.dto.TuplaDto;
 @Repository
 public class RepositoryCollections {
 
+	protected static final Object[][] Object = null;
 
 	private static Logger log = Logger.getLogger(RepositoryCollections.class);
 
@@ -35,6 +38,64 @@ public class RepositoryCollections {
 	@Qualifier("crudBean")
 	private DBConnection connection;
 
+//	/**
+//	 * 
+//	 * @param agrupador
+//	 * @param medida
+//	 * @param inicioFechaIntervalo
+//	 *            Fecha inicio del intervalo con el formato 'DD/MM/YYYY' param
+//	 *            finFechaIntervalo Fecha fin del intervalo con el formato
+//	 *            'DD/MM/YYYY'
+//	 * @return
+//	 */
+//	public Map<String, String> getStandardDeviation(
+//			String inicioFechaIntervalo, String finFechaIntervalo) {
+//
+//		String param = (inicioFechaIntervalo == null || finFechaIntervalo == null) ? ""
+//				: "WHERE timestamp BETWEEN TO_DATE(? , 'DD/MM/YYYY') AND TO_DATE(? , 'DD/MM/YYYY')";
+//		String sql = String
+//				.format("SELECT  "
+//						+ "           (to_char(timestamp ,'DD/MM/YYYY')) AS DATE_EXECUTION , "
+//						+ "           (stddev_pop(elapsed)) AS TIME_RESPONSE  "
+//						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS " + " %s "
+//						+ " GROUP BY DATE_EXECUTION", param);
+//
+//		List<Map> result = connection.read(Map.class, sql, new LoadData<Map>() {
+//
+//			@Override
+//			public Map load(ResultSet rs) throws SQLException {
+//
+//				Map<String, String> tsv = new TreeMap<String, String>(
+//						new Comparator<String>() {
+//
+//							@Override
+//							public int compare(String o1, String o2) {
+//								SimpleDateFormat sdf = new SimpleDateFormat(
+//										"dd/MM/yyyy");
+//								try {
+//									return sdf.parse(o1).compareTo(
+//											sdf.parse(o2));
+//								} catch (ParseException e) {
+//									e.printStackTrace();
+//									throw new LogsReaderException(e);
+//								}
+//							}
+//						});
+//
+//				do {
+//					String x = rs.getString("DATE_EXECUTION");
+//					String y = rs.getString("TIME_RESPONSE");
+//					tsv.put(x, y);
+//				} while (rs.next());
+//
+//				return tsv;
+//			}
+//		}
+//		// , inicioFechaIntervalo, finFechaIntervalo
+//				);
+//
+//		return result.get(0);
+//	}
 
 	public java.lang.Object[][] getDonutServiceApplication(String application,
 			String service) {
@@ -85,8 +146,7 @@ public class RepositoryCollections {
 				.format(""
 						+ "SELECT  MAX (elapsed)  as maxi, "
 						+ "(CASE WHEN (char_length(substring (''||elapsed from 1 for  %s)) < char_length(''||elapsed)) THEN "
-						+ "float4(substring (''||elapsed from 1 for  %s)||repeat('0',char_length (''||elapsed)-%s))|| '-'||  "
-						+ "float4(substring (''||elapsed from 1 for  %s)||repeat('9',char_length (''||elapsed)-%s))"
+						+ "substring (''||elapsed from 1 for  %s)||repeat('0',char_length (''||elapsed)-%s)|| '-'||  substring (''||elapsed from 1 for  %s)||repeat('9',char_length (''||elapsed)-%s)"
 						+ " ELSE ''||elapsed END )as X , "
 						+ "count(*) AS Y "
 						// + " , 25 as timeOut"
@@ -108,6 +168,23 @@ public class RepositoryCollections {
 		return lst;
 	}
 
+	public Integer getMediano(String application, String service,String fecha) {
+		String sqlFecha = "";
+		if(fecha != null) 
+			sqlFecha = String.format(
+				"AND '%s' = to_char(timestamp, 'yyyy-mm-DD')", fecha);
+		
+		String sql = "SELECT  MAX(elapsed) as Median_Column FROM  (  SELECT elapsed, ntile(2) OVER (ORDER BY elapsed) AS bucket "
+				+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS WHERE  LABEL = ? AND application = ? "
+				+ sqlFecha+") as t WHERE bucket = 1 GROUP BY bucket";
+
+		Object[] param = { service, application };
+		
+		Integer mediano= connection.read(Integer.class, sql, param).get(0);
+		
+		return mediano;
+
+	}
 
 	/**
 	 * Retrieve a list with the name of all services executed.
@@ -119,7 +196,7 @@ public class RepositoryCollections {
 	public List<InfoServicesDTO> getListEstadisticas(String fecha, int percentil) {
 
 		
-		String sqlP = "(select float4(max((case when rownum*1.0/numrows <= %s then elapsed end) ))/1000 as percentile "
+		String sqlP = "(select max((case when rownum*1.0/numrows <= %s then elapsed end) ) as percentile "
 						+ "from (select elapsed, "
 						+ "             row_number() over (order by elapsed) as rownum, "
 						+ "             count(*) over (partition by NULL) as numrows "
@@ -128,6 +205,7 @@ public class RepositoryCollections {
 						+ "     ) t) AS %s ";
 		
 		
+		String sqlPercentil = String.format("" ,  (Double.valueOf(percentil +"")/100));
 		String sqlFecha = "";
 		if(fecha != null) 
 			sqlFecha = String.format(
@@ -135,7 +213,7 @@ public class RepositoryCollections {
 		
 		
 		StringBuilder sql = new StringBuilder();
-		sql.append("  SELECT sub.label AS nameService , sub.application, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  float4(sub.F_MAX)/1000 AS f_max,float4(F_MIN)/1000 AS f_min,");
+		sql.append("  SELECT sub.label AS nameService , sub.application, ROUND(sub.F_AVG) AS F_AVG, ROUND(sub.standaDesviation)  AS standaDesviation,  sub.F_MAX,F_MIN,");
 		sql.append("  ROUND(");
 		sql.append("  100.0 * (");
 		sql.append("  SUM(CASE WHEN (logs.elapsed <= sub.F_MAX AND logs.elapsed >=F_MIN) THEN 1 ELSE 0 END)");
@@ -180,6 +258,10 @@ public class RepositoryCollections {
 	public List<InfoServicesDTO> getListService(Integer timeOut,
 			String frecuencia, String fecha, String... params) {
 
+		String paramWhere = "";
+		if (params.length > 0)
+			paramWhere = String.format("AND LABEL = '%s' ", params[0]);
+
 		String append = "";
 		if ("diario".equals(frecuencia))
 			append = String.format(
@@ -190,7 +272,7 @@ public class RepositoryCollections {
 						+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed < %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_down ,"
 						+ " ROUND(100.0 * (SUM(CASE WHEN ( elapsed >= %s) THEN 1 ELSE 0 END)    ) /COUNT(*), 1) AS percent_up, "
 						+ " label AS nameService , application , "
-						+ " float4(AVG (elapsed))/1000 AS f_avg"
+						+ " AVG (elapsed) AS f_avg"
 						+ " FROM CONTAINER_LOGS_DATA.BASIC_LOGS %s  GROUP  BY application , LABEL ORDER BY LABEL",
 						timeOut, timeOut, append);
 
@@ -201,6 +283,16 @@ public class RepositoryCollections {
 	}
 
 	public List<ErrorNowDTO> getErrorNowTable(Integer ancho, Integer minutos) {
+
+		//
+		// String sql =
+		// "(SELECT COUNT(*) AS F_COUNT , label AS service,  responseCode "
+		// +
+		// "FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE RESPONSECODE != '200' AND "
+		// + "application = 'BUZZ' AND "
+		// + "a.timestamp > current_timestamp - interval  '120 minutes' "
+		// +
+		// "GROUP BY LABEL  , responseCode HAVING COUNT(DISTINCT(LABEL)) <= 3   order by F_COUNT DESC ) ";
 
 		String sql = String
 				.format(" SELECT application , label , COUNT(*) AS NUM_ERR FROM  CONTAINER_LOGS_DATA.BASIC_LOGS WHERE "
@@ -230,13 +322,45 @@ public class RepositoryCollections {
 						+ " UNION "
 						+ "(SELECT COUNT(*) AS F_COUNT , label , 'min_24h' AS KEY "
 						+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? AND a.timestamp > current_timestamp - interval  '1440 minutes' GROUP BY LABEL  order by F_COUNT DESC limit %s)"
-		,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho
-		);
+						+ " UNION "
+		+ "(SELECT COUNT(*) AS F_COUNT , label , 'histórico' AS KEY "
+		+ " FROM  CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE %s AND application = ? GROUP BY LABEL  order by F_COUNT DESC limit %s)",
+		sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho,sqlREsponse, ancho);
 
+		// String sql = String
+		// .format("SELECT t1.name as MIN_1, time||'' AS time_MIN_1,'' as MIN_10, '' AS time_MIN_10,'' as MIN_60, '' AS time_MIN_60,'' as MIN_24h ,'' AS time_MIN_24h FROM                        "
+		// +
+		// "( SELECT DISTINCT(label) as name , MAX(elapsed) as time FROM CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE a.timestamp > current_timestamp - interval      '100 minutes'  GROUP BY     "
+		// +
+		// "label  ORDER BY time DESC limit %s) t1                                                                                                                                         "
+		// +
+		// "UNION                                                                                                                                                                         "
+		// +
+		// "SELECT '' as MIN_1, '' AS time_MIN_1, name as MIN_10, time||'' AS time_MIN_10,'' as MIN_60, '' AS time_MIN_60,'' as MIN_24h ,'' AS time_MIN_24h FROM                          "
+		// +
+		// "( SELECT DISTINCT(label) as name , MAX(elapsed) as time FROM CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE a.timestamp > current_timestamp - interval      '300 minutes'  GROUP BY    "
+		// +
+		// "label  ORDER BY time DESC limit %s) t1                                                                                                                                         "
+		// +
+		// "UNION                                                                                                                                                                         "
+		// +
+		// "SELECT '' as MIN_1, '' AS time_MIN_1,'' as MIN_10, '' AS time_MIN_10, name as MIN_60, time||'' AS time_MIN_60,'' as MIN_24h ,'' AS time_MIN_24h FROM                          "
+		// +
+		// "( SELECT DISTINCT(label) as name , MAX(elapsed) as time FROM CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE a.timestamp > current_timestamp - interval      '600 minutes'  GROUP BY    "
+		// +
+		// "label  ORDER BY time DESC limit %s) t1                                                                                                                                         "
+		// +
+		// "UNION                                                                                                                                                                         "
+		// +
+		// "SELECT  '' as MIN_1, '' AS time_MIN_1,'' as MIN_10, '' AS time_MIN_10,'' as MIN_60, '' AS time_MIN_60, name as MIN_24h ,time||'' AS time_MIN_24h FROM                         "
+		// +
+		// "( SELECT DISTINCT(label) as name , MAX(elapsed) as time FROM CONTAINER_LOGS_DATA.BASIC_LOGS a WHERE a.timestamp > current_timestamp - interval      '1440 minutes'  GROUP BY  "
+		// + "label  ORDER BY time DESC limit %s) t1", ancho,
+		// ancho, ancho, ancho);
 
 		RowMapper<Object[][]> maper = new RowMapper<Object[][]>() {
 
-			String[] keys = { "min_1m", "min_10m", "min_2h", "min_24h" };
+			String[] keys = { "min_1m", "min_10m", "min_2h", "min_24h" ,"histórico"};
 			Set<String> heads = new TreeSet<String>();
 			Map<String, Map<String, Integer>> result = new TreeMap<String, Map<String, Integer>>();
 			Object[][] matrix = null;
@@ -302,13 +426,25 @@ public class RepositoryCollections {
 			}
 		};
 		List<Object[][]> lstResult = connection.read(maper, Object[][].class,
-				sql, application, application, application, application);
+				sql, application, application, application, application,application);
 
 		if (lstResult.size() > 0)
 			return lstResult.get(0);
 
 		return null;
 
+	}
+
+	public FileEnvironmentEntity getFileEnvironmentEntity(File file,
+			String environment) {
+
+		String sql = "SELECT * FROM CONTAINER_LOGS_DATA.FILE_ENVIRONMENT WHERE nameFile = ? AND environment = ? ";
+		List<FileEnvironmentEntity> result = connection.read(
+				FileEnvironmentEntity.class, sql, file.getName(), environment);
+
+		if (result.size() == 0)
+			return null;
+		return result.get(0);
 	}
 
 	/**

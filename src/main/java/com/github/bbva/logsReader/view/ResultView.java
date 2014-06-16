@@ -11,7 +11,7 @@ package com.github.bbva.logsReader.view;
 public class ResultView {
 
 	private ResultTableView tableView;
-	private ResultBarView barView;
+	private ResultBarView<?> barView;
 	private ResultDonutView donutView;
 
 	/**

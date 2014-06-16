@@ -1,6 +1,7 @@
 package com.github.bbva.logsReader.utils.enums;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -12,6 +13,9 @@ public enum EnumSource {
 	ONE(0, 10, "http://54.194.98.47/html/jmeter/ErrorNow/",
 			"logscsv_enpp2_%s.csv", "logscsv_enpp_%s.csv");
 
+
+
+	private  File file= null;
 	public final static String APP_BUZZ = "BUZZ";
 	public final static String APP_NXT = "NXT/WALLET";
 	int numLines;
@@ -52,38 +56,27 @@ public enum EnumSource {
 
 		try {
 
-			String spec = url + getNameFile(fileNameApp);
+			
+			Calendar cal = Calendar.getInstance();
+			cal.setTimeInMillis(System.currentTimeMillis());
+			cal.add(Calendar.MINUTE, -120);
+			SimpleDateFormat sdf= new SimpleDateFormat("yyyyMMdd");
+			String date = sdf.format(cal.getTime());
+
+			String spec = String.format(url + fileNameApp, date);
 			URL url = new URL(spec);
 
-			File file = new File("tempo_" + fileNameApp);
+			file = new File("tempo");
 			FileUtils.copyURLToFile(url, file);
 			return file;
 		} catch (Exception e) {
 			return null;
 		}
 	}
-
-	private String getNameFile(String fileNameApp) {
-		try {
-			Calendar cal = Calendar.getInstance();
-			cal.setTimeInMillis(System.currentTimeMillis());
-			cal.add(Calendar.MINUTE, -120);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-			String date = sdf.format(cal.getTime());
-
-			return String.format(fileNameApp, date);
-
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
-	public Boolean clearNxt() {
-		return new File("tempo_" + getNameFile(nameFileNxt)).delete();
-	}
-
-	public Boolean clearBuzz() {
-		return new File("tempo_" + getNameFile(nameFileBuzz)).delete();
+	
+	public void clear(){
+		if(file != null)
+			file.delete();
 	}
 
 	public int getNumLines() {

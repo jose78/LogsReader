@@ -24,8 +24,7 @@
 
 		var fecha = document.getElementById('datepicker').value;
 		var frecuenciaTiempo = $('input[name=myRadios]:checked').val();
-		var timeout = parseFloat((""+document.getElementById('timeout').value).replace(",",".")) * 1000;
-
+		var timeout = document.getElementById('timeout').value;
 		console.log("frecuenciaTiempo: " + frecuenciaTiempo + " fecha:" + fecha
 				+ " timeOut:" + timeout);
 
@@ -98,14 +97,12 @@
 		var frecuenciaTiempo = $('input[name="myRadios"]:checked').val();
 		var fecha = document.getElementById('datepicker').value;
 
-		
-		
 		window.open("grafica.html?service=" + nameService + '&application='
 				+ application + '&to=25&fecha=' + fecha + "&frecuenciaTiempo="
 				+ frecuenciaTiempo, "MsgWindow" + nameService,
 				"width=800, height=700");
 
-
+		document.getElementById("popUp").setattribute("visibility","visible");
 	}
 	/*
 	 * .datagrid table thead th {
@@ -146,7 +143,7 @@
 			<legend style="font-size: 13pt;"> Configuración </legend>
 
 			<li>Time Out<input type="text" class="inputs" id="timeout"
-				value="0" onchange="executeService();"> seg.</li>
+				value="0" onchange="executeService();"></li>
 			<li>Fecha:<br> <input type="radio" name="myRadios"
 				id="historico" checked="checked" value="historico" /> Histórico <br>
 				<input type="radio" name="myRadios" id="diario" value="diario" />

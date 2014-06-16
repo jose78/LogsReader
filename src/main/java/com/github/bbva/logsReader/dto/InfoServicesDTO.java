@@ -13,16 +13,16 @@ import com.github.bbva.logsReader.annt.DTO;
 public class InfoServicesDTO {
 
 	@Column(name = "PERCENTILE")
-	private Double percentile;
+	private String percentile;
 
 	@Column(name = "Q2")
-	private Double medianColum;
+	private long medianColum;
 
 	@Column(name = "Q1")
-	private Double q1;
+	private long q1;
 
 	@Column(name = "Q3")
-	private Double q3;
+	private long q3;
 
 	@Column(name = "nameService")
 	private String service;
@@ -31,12 +31,12 @@ public class InfoServicesDTO {
 	private String application;
 
 	@Column(name = "f_max")
-	private Double max;
+	private long max;
 	@Column(name = "f_min")
-	private Double min;
+	private long min;
 
 	@Column(name = "f_avg")
-	private Double aggregate;
+	private long aggregate;
 
 	@Column(name = "standadesviation")
 	private long standaDesviation;
@@ -55,22 +55,22 @@ public class InfoServicesDTO {
 	
 	
 	
-	public Double getMax() {
+	public long getMax() {
 		return max;
 	}
-	public Double getMin() {
+	public long getMin() {
 		return min;
 	}
-	public Double getMedianColum() {
+	public long getMedianColum() {
 		return medianColum;
 	}
-	public Double getPercentile() {
+	public String getPercentile() {
 		return percentile;
 	}
-	public Double getQ1() {
+	public long getQ1() {
 		return q1;
 	}
-	public Double getQ3() {
+	public long getQ3() {
 		return q3;
 	}
 
@@ -89,7 +89,7 @@ public class InfoServicesDTO {
 	 * 
 	 * @return the aggregate
 	 */
-	public Double getAggregate() {
+	public long getAggregate() {
 		return aggregate;
 	}
 

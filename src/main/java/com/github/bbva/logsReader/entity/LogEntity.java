@@ -64,85 +64,6 @@ public class LogEntity {
 	@Column(name = "environment")
 	private String environment;
 
-	public LogEntity() {
-	}
-
-	public LogEntity(Map<String, String> map) {
-
-		this.Latency = Integer.parseInt(map.get("Latency"));
-		this.bytes = Integer.parseInt(map.get("bytes"));
-		this.dataType = map.get("dataType");
-		this.elapsed = Integer.parseInt(map.get("elapsed"));
-		this.failureMessage = map.get("failureMessage");
-		this.label = map.get("label");
-		this.responseCode = map.get("responseCode");
-		this.responseMessage = map.get("responseMessage");
-		this.success = map.get("success");
-		this.threadName = map.get("threadName");
-		this.application = map.get("application");
-		this.environment = map.get("environment"); 
-
-		// 2014/04/09 00:00:08.960
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
-		try {
-			this.timeStamp = new Timestamp(sdf.parse(map.get("timeStamp"))
-					.getTime());
-			
-	        Calendar cal = Calendar.getInstance();
-	        cal.setTimeInMillis(timeStamp.getTime());
-	        cal.add(Calendar.MINUTE, +125);
-	        this.timeStamp = new Timestamp(cal.getTime().getTime());
-	        
-			
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
-	
-	public LogEntity( 
-			Object  latency, 
-			Object  bytes,
-			Object dataType,
-			Object  elapsed, 
-			Object failureMessage,
-			Object label, 
-			Object responseCode, 
-			Object responseMessage,
-			Object success, 
-			Object threadName, 
-			Object timeStamp,
-			Object application, 
-			Object environment) {
-		super();
-		
-		this.Latency = (Integer) latency;
-		this.bytes = (Integer) bytes;
-		this.dataType = (String) dataType;
-		this.elapsed = (Integer) elapsed;
-		this.failureMessage = (String) failureMessage;
-		this.label = (String) label;
-		this.responseCode = (String) responseCode;
-		this.responseMessage = (String) responseMessage;
-		this.success = (String) success;
-		this.threadName = (String) threadName;
-		this.timeStamp = (Timestamp) timeStamp;
-		this.application = (String) application;
-		this.environment = (String) environment;
-		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
-		try {
-			this.timeStamp = new Timestamp(sdf.parse(timeStamp.toString()).getTime());			
-	        Calendar cal = Calendar.getInstance();
-	        cal.setTimeInMillis(this.timeStamp.getTime());
-	        cal.add(Calendar.MINUTE, +125);
-	        this.timeStamp = new Timestamp(cal.getTime().getTime());		
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public Integer getLatency() {
 		return Latency;
 	}
@@ -231,7 +152,40 @@ public class LogEntity {
 		this.timeStamp = timeStamp;
 	}
 
-	
+	public LogEntity() {
+	}
+
+	public LogEntity(Map<String, String> map) {
+
+		this.Latency = Integer.parseInt(map.get("Latency"));
+		this.bytes = Integer.parseInt(map.get("bytes"));
+		this.dataType = map.get("dataType");
+		this.elapsed = Integer.parseInt(map.get("elapsed"));
+		this.failureMessage = map.get("failureMessage");
+		this.label = map.get("label");
+		this.responseCode = map.get("responseCode");
+		this.responseMessage = map.get("responseMessage");
+		this.success = map.get("success");
+		this.threadName = map.get("threadName");
+		this.application = map.get("application");
+		this.environment = map.get("environment"); 
+
+		// 2014/04/09 00:00:08.960
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+		try {
+			this.timeStamp = new Timestamp(sdf.parse(map.get("timeStamp"))
+					.getTime());
+			
+	        Calendar cal = Calendar.getInstance();
+	        cal.setTimeInMillis(timeStamp.getTime());
+	        cal.add(Calendar.MINUTE, +125);
+	        this.timeStamp = new Timestamp(cal.getTime().getTime());
+	        
+			
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public String getApplication() {
 		return application;
@@ -252,4 +206,7 @@ public class LogEntity {
 						label, responseCode, responseMessage, success,
 						threadName, timeStamp, application, environment);
 	}
+	
+	
+
 }

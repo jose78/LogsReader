@@ -1,7 +1,6 @@
 package com.github.bbva.logsReader.rest;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,10 +38,11 @@ public class LogReaderControler {
 
 	@RequestMapping(value = { "/" })
 	public void setStartUp(HttpServletResponse response) throws IOException {
-		response.sendRedirect("index.html");
+		response.sendRedirect("demo.html");
 	}
 
-	@RequestMapping(value = { "/ListServices" }, params = { "frecuencia",
+	@RequestMapping(value = { "/ListServices" },
+			params = { "frecuencia",
 			"fecha", "timeout" }, method = { RequestMethod.GET }, produces = "application/json")
 	public @ResponseBody ResultTableView getListServices(
 			@RequestParam(value = "frecuencia", defaultValue = "diario") String frecuencia,
@@ -53,11 +53,11 @@ public class LogReaderControler {
 
 		List<ColumnTableView> lstCol = new ArrayList<ColumnTableView>();
 
-		lstCol.add(new ColumnTableView("Service", "string"));
-		lstCol.add(new ColumnTableView("Application", "string"));
-		lstCol.add(new ColumnTableView("Average time (seg)", "number"));
-		lstCol.add(new ColumnTableView("% Under the TimeOut", "number"));
-		lstCol.add(new ColumnTableView("% Over the TimeOut", "number"));
+		lstCol.add(new ColumnTableView("Servicio", "string"));
+		lstCol.add(new ColumnTableView("Aplicación", "string"));
+		lstCol.add(new ColumnTableView("Tiempo medio", "number"));
+		lstCol.add(new ColumnTableView("% Por debajo del TimeOut", "number"));
+		lstCol.add(new ColumnTableView("% Por encima del TimeOut", "number"));
 
 		List<RowTableView> lst = new ArrayList<RowTableView>();
 
@@ -65,9 +65,8 @@ public class LogReaderControler {
 			RowTableView row = new RowTableView();
 			row.addCol(infoServicesDTO.getService(),
 					infoServicesDTO.getApplication(),
-					resizeNumber(infoServicesDTO.getAggregate()),
-					infoServicesDTO.getFailDown(), 
-					infoServicesDTO.getFailUp());
+					infoServicesDTO.getAggregate(),
+					infoServicesDTO.getFailDown(), infoServicesDTO.getFailUp());
 
 			lst.add(row);
 		}
@@ -79,12 +78,12 @@ public class LogReaderControler {
 
 	@RequestMapping(value = { "/ErrorNowGr" }, params = { "ancho",
 			"application" }, method = { RequestMethod.GET }, produces = "application/json")
-	public @ResponseBody ResultBarView<?> getErrorNowGr(
+	public @ResponseBody ResultBarView getErrorNowGr(
 			@RequestParam(value = "ancho", defaultValue = "5") String ancho,
 			@RequestParam(value = "application") String application) {
 		Object[][] resultDB = repository.getErrorNowGraphic(ancho, application);
 
-		ResultBarView<Object[][]> result = new ResultBarView<Object[][]>("Servicios.",
+		ResultBarView result = new ResultBarView("Servicios.",
 				"Nº de errores.", resultDB);
 
 		return result;
@@ -106,19 +105,18 @@ public class LogReaderControler {
 						errorNowDTO.getLabel(), errorNowDTO.getNumberOfError());
 				lstRow.add(rowView);
 			}
+		} else {
+			for (int index = 0; index <= Integer.parseInt(ancho); index++) {
+				RowTableView rowView = new RowTableView();
+				rowView.addCol("-", "-", 0);
+				lstRow.add(rowView);
+			}
 		}
-		int max = Math.min(Integer.parseInt(ancho), Integer.parseInt(ancho) - resultDB.size() );
-		for (int index = 0; index < max; index++) {
-			RowTableView rowView = new RowTableView();
-			rowView.addCol("-", "-", 0);
-			lstRow.add(rowView);
-		}
-		
 
 		List<ColumnTableView> lstColumn = new ArrayList<ColumnTableView>();
-		lstColumn.add(new ColumnTableView("Application", "string"));
-		lstColumn.add(new ColumnTableView("Service", "string"));
-		lstColumn.add(new ColumnTableView("Num. of errors", "number"));
+		lstColumn.add(new ColumnTableView("Aplicación", "string"));
+		lstColumn.add(new ColumnTableView("Servicio", "string"));
+		lstColumn.add(new ColumnTableView("Nº de errores", "number"));
 
 		ResultTableView tableView = new ResultTableView(lstColumn, lstRow);
 
@@ -191,16 +189,19 @@ public class LogReaderControler {
 			rowView.addCol(
 					infoServicesDTO.getApplication(),
 					infoServicesDTO.getService(),
-					resizeNumber(infoServicesDTO.getAggregate()),
+					array(infoServicesDTO.getAggregate(), "ms"),
 					infoServicesDTO.getStandaDesviation(),
-					array(infoServicesDTO.getFailUp(), "%")	,
-					resizeNumber(infoServicesDTO.getQ1()),
-					resizeNumber(infoServicesDTO.getMedianColum()),
-					resizeNumber(infoServicesDTO.getQ3()),
-					resizeNumber(infoServicesDTO.getPercentile()),
-					resizeNumber(infoServicesDTO.getMax()),
-					resizeNumber(infoServicesDTO.getMin())
-					);
+					array(infoServicesDTO.getOk(), "%"),
+					array(infoServicesDTO.getFailDown(), "%"),
+					array(infoServicesDTO.getFailUp(), "%")
+
+					,
+					array(infoServicesDTO.getQ1(), "ms"),
+					array(infoServicesDTO.getMedianColum(), "ms"),
+					array(infoServicesDTO.getQ3(), "ms"),
+					array(Integer.parseInt(infoServicesDTO.getPercentile()),
+							"ms"), infoServicesDTO.getMin(), infoServicesDTO
+							.getMax());
 			lstRow.add(rowView);
 
 		}
@@ -208,30 +209,17 @@ public class LogReaderControler {
 		List<ColumnTableView> lstCol = new ArrayList<ColumnTableView>();
 		lstCol.add(new ColumnTableView("Application", "string"));
 		lstCol.add(new ColumnTableView("Service", "string"));
-		lstCol.add(new ColumnTableView("Average time (seg)", "number"));
-		lstCol.add(new ColumnTableView("Standard Desviation", "number"));
-		lstCol.add(new ColumnTableView("% Over the range", "number"));
-		lstCol.add(new ColumnTableView("Q1 (seg)", "number"));
-		lstCol.add(new ColumnTableView("Q2 (seg)", "number"));
-		lstCol.add(new ColumnTableView("Q3 (seg)", "number"));
-		lstCol.add(new ColumnTableView("Percent "+percentil+" (seg)", "number"));
-		lstCol.add(new ColumnTableView("Max (seg)", "number"));
-		lstCol.add(new ColumnTableView("Min (seg)", "number"));
+
+		lstCol.add(new ColumnTableView("Agrgate", "number"));
+		lstCol.add(new ColumnTableView("Standar Desviation", "number"));
+		lstCol.add(new ColumnTableView("% OK", "number"));
+		lstCol.add(new ColumnTableView("% Down OK", "number"));
+		lstCol.add(new ColumnTableView("% Up OK", "number"));
 
 		ResultView view = new ResultView();
 		view.setTableView(new ResultTableView(lstCol, lstRow));
 
 		return view;
-	}
-	
-	
-	private Double resizeNumber(Double number){
-		int decimalPlaces = 2;
-		BigDecimal bd = new BigDecimal(number);
-
-		// setScale is immutable
-		bd = bd.setScale(decimalPlaces, BigDecimal.ROUND_HALF_UP);
-		return bd.doubleValue();
 	}
 
 	private Object[] array(Object... objects) {
