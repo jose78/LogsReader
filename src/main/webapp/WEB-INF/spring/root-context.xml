@@ -17,8 +17,7 @@
 
 	<bean id="crudBean" class="com.github.bbva.logsReader.db.CRUD" scope="singleton" init-method="init" />
 
-<bean id="dataSource"
-	class="org.springframework.jdbc.datasource.DriverManagerDataSource" />
+
 
 	<bean id="runMeTask" destroy-method="destroy"
 		class="com.github.bbva.logsReader.utils.Daemon" />

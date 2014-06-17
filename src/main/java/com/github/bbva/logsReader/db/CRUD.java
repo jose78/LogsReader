@@ -12,15 +12,18 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import com.github.bbva.logsReader.annt.Column;
 import com.github.bbva.logsReader.annt.DTO;
@@ -51,34 +54,26 @@ public class CRUD implements DBConnection {
 	@Autowired
 	private ClassUtils classUtils;
 
-	@Qualifier("dataSource")
-	@Autowired
-	private DriverManagerDataSource ds;
-
-	private Connection reader;
-	private Connection writer;
+	private JdbcTemplate template;
+	private SingleConnectionDataSource ds;
 
 	public void init() {
-		String dbUrl = String.format("jdbc:postgresql://%s:%s/%s", dbHost, dbPort, dbName);
+		ds = new SingleConnectionDataSource();
+		String dbUrl = String.format("jdbc:postgresql://%s:%s/%s", dbHost,dbPort, dbName);
 		log.info("-------- PostgreSQL JDBC Connection Testing ------------");
 		log.info(String.format("     -> Usuario:%s\n     ->nURL:%s", dbUser, dbUrl));
-
-		try {
-			Class.forName(dbDriver);
-			log.info("PostgreSQL JDBC Driver Registered!");
-		} catch (ClassNotFoundException e) {
-			log.error("Where is your PostgreSQL JDBC Driver? "
-					+ "Include in your library path!", e);
-			e.printStackTrace();
-			return;
-		}
 
 		ds.setDriverClassName(dbDriver);
 		ds.setPassword(dbPass);
 		ds.setUrl(dbUrl);
 		ds.setUsername(dbUser);
+		ds.setAutoCommit(dbAutoCommit);
 
+		template = new JdbcTemplate(ds);
 	}
+
+	
+	
 
 	/*
 	 * (non-Javadoc)
@@ -88,56 +83,48 @@ public class CRUD implements DBConnection {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> List<T> read(Class<T> clazz, String sql, Object... params) {
+	public <T> List<T> read(final Class<T> clazz, String sql, Object... params) {
 
-		List<T> lst = new ArrayList<T>();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+
 		log.info("SQL: " + sql);
 		
-		try {
-			
-			ps = getReaderStatement(sql);
-			ps = getLocalConnection().prepareStatement(sql);
-			setValuesInPreparedStatement(ps, params);
-			rs = ps.executeQuery();
-			ResultSetMetaData rsMetaData = rs.getMetaData();
-			int countColumn = rsMetaData.getColumnCount();
-			String[] columnNames = new String[countColumn];
+		RowMapper<T> rowMapper = new RowMapper<T>() {
 
-			for (int index = 0; index < countColumn; index++) {
-				columnNames[index] = rsMetaData.getColumnName(index + 1);
-			}
-
-			while (rs.next()) {
+			String[] columnNames;
+			@Override
+			public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+				
+				ResultSetMetaData rsMetaData = rs.getMetaData();
+				int countColumn = rsMetaData.getColumnCount();
+				if(columnNames == null){
+					columnNames = new String[countColumn];
+				}
+				for (int index = 0; index < countColumn; index++) {
+					columnNames[index] = rsMetaData.getColumnName(index + 1);
+				}
+				
 				T data = null;
 
-				if (clazz.getAnnotation(Entity.class) != null
-						|| clazz.getAnnotation(DTO.class) != null) {
-					data = clazz.newInstance();
-
-					for (String columnName : columnNames) {
-						Object result = rs.getObject(columnName);
-						classUtils.setValueInColumn(data, columnName, result);
-					}
-				} else
-					data = (T) rs.getObject(1);
-				lst.add(data);
+				try{
+					if (clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(DTO.class) != null) {
+						data = clazz.newInstance();
+	
+						for (String columnName : columnNames) {
+							Object result = rs.getObject(columnName);
+							classUtils.setValueInColumn(data, columnName, result);
+						}
+					} else
+						data = (T) rs.getObject(1);
+				}catch(Exception e){
+					throw new LogsReaderException(e);
+				}
+				
+				return (data);
 			}
-			return lst;
-		} catch (Exception e) {
-			throw new LogsReaderException(e, "Error reading the SQL:[%s]", sql);
-		} finally {
-			try {
-
-				if (ps != null)
-					ps.close();
-				if (rs != null)
-					rs.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+		};
+		List<T> lst= template.query(sql, params, rowMapper);
+		return lst;
+		
 	}
 
 	/*
@@ -147,8 +134,7 @@ public class CRUD implements DBConnection {
 	 */
 	@Override
 	public <T> int delete(T data) {
-		PreparedStatement ps = null;
-		Connection cnx = writer;
+
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -173,23 +159,14 @@ public class CRUD implements DBConnection {
 			String sql = String.format("DELETE FROM %s WHERE %s", nameTable,
 					params);
 
-			ps = cnx.prepareStatement(sql);
-			setValuesInPreparedStatement(ps, value);
-			int numberRows = ps.executeUpdate();
+			int numberRows = template.update(sql, value);
+
 			log.info(String.format("Number of rows afected %s", numberRows));
 			return numberRows;
 		} catch (Exception e) {
 			throw new LogsReaderException(e, "Error deleting the data:[%s]",
 					data);
-		} finally {
-			try {
-
-				if (ps != null)
-					ps.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+		} 
 	}
 
 	/*
@@ -200,7 +177,7 @@ public class CRUD implements DBConnection {
 	@Override
 	public <T> int update(T data) {
 		PreparedStatement ps = null;
-		Connection cnx = writer;
+
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -235,11 +212,8 @@ public class CRUD implements DBConnection {
 
 			log.info(sql);
 
-			
-			ps = cnx.prepareStatement(sql);
+			int numberRows = template.update(sql, value, valueIds);
 
-			setValuesInPreparedStatement(ps, ArrayUtils.addAll(value, valueIds));
-			int numberRows = ps.executeUpdate();
 			log.info(String.format("Number of rows afected %s", numberRows));
 			return numberRows;
 		} catch (Exception e) {
@@ -263,9 +237,7 @@ public class CRUD implements DBConnection {
 	 */
 	@Override
 	synchronized public <T> T insert(T data) {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		Connection cnx = null;
+
 		try {
 			Table anntTable = (Table) data.getClass()
 					.getAnnotation(Table.class);
@@ -278,8 +250,8 @@ public class CRUD implements DBConnection {
 							return anntColumn.autoincrement();
 						}
 					}, true);
-			Object[] params = classUtils.getValueClass(data, Column.class,
-					Id.class);
+			final Object[] params = classUtils.getValueClass(data,
+					Column.class, Id.class);
 			String[] columns = classUtils.getValueAnnt(data, Column.class,
 					new ClassUtils.ProviderValueAnnt<String>() {
 
@@ -294,50 +266,41 @@ public class CRUD implements DBConnection {
 
 			String nextVal = "";
 			if (nameAutoIncrement.length > 0) {
-				nextVal = String.format("%s", StringUtils.repeat(
-						"nextval('%s'), ", nameAutoIncrement.length));
+				nextVal = String.format("%s", StringUtils.repeat("nextval('%s'), ", nameAutoIncrement.length));
 				nextVal = String.format(nextVal, nameAutoIncrement);
 
 			}
 
-			String sql = String.format("INSERT INTO %s (%s) VALUES (%s %s)",
-					nameTable, StringUtils.join(columns, ", "), nextVal,
-					paramsStr);
+			final String sql = String.format(
+					"INSERT INTO %s (%s) VALUES (%s %s)", nameTable,
+					StringUtils.join(columns, ", "), nextVal, paramsStr);
 
-			cnx = writer;
+			KeyHolder holder = new GeneratedKeyHolder();
 
-			ps = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			int numberRows = template.update(new PreparedStatementCreator() {
 
-			setValuesInPreparedStatement(ps, params);
-
-			int numberRows = ps.executeUpdate();
-
-			rs = ps.getGeneratedKeys();
-			Column[] columnsTmp = classUtils.getIdColumnd(data.getClass());
-			if (rs.next()) {
-				for (Column column : columnsTmp) {
-					Object result = rs.getObject(column.name());
-					classUtils.setIdInEntity(data, column.name(), result);
+				@Override
+				public PreparedStatement createPreparedStatement(
+						Connection connection) throws SQLException {
+					PreparedStatement ps = connection.prepareStatement(sql,
+							Statement.RETURN_GENERATED_KEYS);
+					setValuesInPreparedStatement(ps, params);
+					return ps;
 				}
+			}, holder);
+			
+			log.info(String.format("Number of rows afected %s", numberRows));
+			
+			for (Entry<String, Object> entry : holder.getKeys().entrySet()) {
+				classUtils.setIdInEntity(data, entry.getKey(), entry.getValue());
+				log.info(String.format("Loaded OK ID<K,V> = <%s,%s>.", entry.getKey() , entry.getValue()));
 			}
+			
 
 			return data;
-		} catch (SQLException e) {
-			if (e.getErrorCode() != 23505)
-				throw new LogsReaderException(e, "Error EC:[%s] inserting the data:[%s]",e.getErrorCode(),data);
-			return data;
-		}catch (Exception e) {
+		} catch (Exception e) {
 			throw new LogsReaderException(e, "Error inserting the data:[%s]",
 					data);
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (rs != null)
-					rs.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		}
 	}
 
@@ -351,82 +314,16 @@ public class CRUD implements DBConnection {
 		}
 	}
 
-
 	@Override
 	public <T> List<T> read(RowMapper<T> loader, Class<T> clazz, String sql,
 			Object... params) {
-		List<T> lst = new ArrayList<T>();
-		PreparedStatement ps = null;
-		ResultSet rs = null;
+		 new ArrayList<T>();
+		
 		log.info("SQL: " + sql);
 		
-		try {
-			
-			ps = getReaderStatement(sql);
-			setValuesInPreparedStatement(ps, params);
-			rs = ps.executeQuery();
-			ResultSetMetaData rsMetaData = rs.getMetaData();
-			int countColumn = rsMetaData.getColumnCount();
-			String[] columnNames = new String[countColumn];
+		List<T> lst = template.query(sql, params , loader);
 
-			for (int index = 0; index < countColumn; index++) {
-				columnNames[index] = rsMetaData.getColumnName(index + 1);
-			}
-
-			int count = 0;
-			while (rs.next()) {
-				T data = loader.mapRow(rs, count++);
-				lst.add(data);
-			}
-			return lst;
-		} catch (Exception e) {
-			throw new LogsReaderException(e, "Error reading the SQL:[%s]", sql);
-		} finally {
-			try {
-
-				if (ps != null)
-					ps.close();
-				if (rs != null)
-					rs.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+		return lst;
 	}
 
-	public void openWriter() {
-		try {
-			this.writer = getLocalConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void closeWriter() {
-		try {
-			if (this.writer != null)
-				this.writer.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private PreparedStatement getReaderStatement(String sql) throws SQLException {
-		try {
-			return this.reader.prepareStatement(sql);
-		} catch (Exception e) {
-			log.info("Connection Reader created.");
-			this.reader = getLocalConnection();
-			return this.reader.prepareStatement(sql);			
-		}
-	}
-
-	private Connection getLocalConnection() throws SQLException {
-
-		return ds.getConnection();
-
-		// cnx = ds.getConnection();
-		// cnx.setAutoCommit(dbAutoCommit);
-		// return cnx;
-	}
 }

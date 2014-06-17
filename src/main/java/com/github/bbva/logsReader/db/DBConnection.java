@@ -52,18 +52,5 @@ public interface DBConnection {
 	 */
 	public abstract <T> T insert(T data);
 	
-	public void openWriter();
 	
-	public void closeWriter();
-	
-//	/**
-//	 * Commit the transactions.
-//	 */
-//	public void commit();
-//	
-//	/**
-//	 * Rollback the transactions.
-//	 */
-//	public void rollbak();
-
 }

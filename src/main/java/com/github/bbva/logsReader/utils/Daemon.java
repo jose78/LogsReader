@@ -46,8 +46,7 @@ public class Daemon {
 		semaphore = false;
 		log.info("Executing DAEMON.");
 		
-		connection.openWriter();
-		
+	
 		for (EnumSource source : EnumSource.values()) {
 
 			if (source.isExecutable()) {
@@ -70,7 +69,7 @@ public class Daemon {
 				source.clear();
 			}
 		}
-		connection.closeWriter();
+
 		log.info("END DAEMON.");
 		return true;
 	}
